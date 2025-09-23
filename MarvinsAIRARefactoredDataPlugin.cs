@@ -4,6 +4,7 @@ using System.IO;
 using System.IO.MemoryMappedFiles;
 using System.Runtime.InteropServices;
 using System.Windows.Media;
+using System.Text;
 
 using GameReaderCommon;
 
@@ -17,15 +18,18 @@ namespace MarvinsAIRARefactoredSimHub
 	public class MarvinsAIRARefactoredDataPlugin : IPlugin, IDataPlugin, IWPFSettingsV2
 	{
 		[StructLayout( LayoutKind.Sequential, Pack = 4 )]
-		public struct DataStruct
+		private struct DataStruct
 		{
 			public int version;
 			public int tickCount;
+
+			public bool iracingConnected;
 
 			public float racingWheelStrength;
 			public float racingWheelMaxForce;
 
 			public float racingWheelOutputTorque;
+			public float autoRacingWheelMaxForce;
 			public bool racingWheelOutputTorqueIsClipping;
 			public bool racingWheelCrashProtectionIsActive;
 			public bool racingWheelCurbProtectionIsActive;
@@ -43,6 +47,18 @@ namespace MarvinsAIRARefactoredSimHub
 
 			public float pedalsThrottleFrequency;
 			public float pedalsThrottleAmplitude;
+
+			public int algorithmNameLength;
+			public int algorithmParameterNameLength_0;
+			public int algorithmParameterValueLength_0;
+			public int algorithmParameterNameLength_1;
+			public int algorithmParameterValueLength_1;
+			public int algorithmParameterNameLength_2;
+			public int algorithmParameterValueLength_2;
+			public int algorithmParameterNameLength_3;
+			public int algorithmParameterValueLength_3;
+			public int algorithmParameterNameLength_4;
+			public int algorithmParameterValueLength_4;
 		}
 
 		private const string MemoryMappedFileName = "Local\\MAIRARefactoredTelemetry";
@@ -54,6 +70,10 @@ namespace MarvinsAIRARefactoredSimHub
 		public string LeftMenuTitle => "MAIRA Refactored data plugin";
 
 		private DataStruct data = new DataStruct();
+		public string algorithmName;
+		public string[] algorithmParameterName = new string[5];
+		public string[] algorithmParameterValue = new string[5];
+
 		private MemoryMappedFile memoryMappedFile = null;
 		private MemoryMappedViewAccessor memoryMappedFileViewAccessor = null;
 
@@ -71,6 +91,7 @@ namespace MarvinsAIRARefactoredSimHub
 
 			this.AttachDelegate( name: "faulted", valueProvider: () => faulted );
 			this.AttachDelegate( name: "connected", valueProvider: () => connected );
+			this.AttachDelegate( name: "iracingConnected", valueProvider: () => data.iracingConnected );
 
 			this.AttachDelegate( name: "tickCount", valueProvider: () => data.tickCount );
 
@@ -78,6 +99,7 @@ namespace MarvinsAIRARefactoredSimHub
 			this.AttachDelegate( name: "racingWheelMaxForce", valueProvider: () => data.racingWheelMaxForce );
 
 			this.AttachDelegate( name: "racingWheelOutputTorque", valueProvider: () => data.racingWheelOutputTorque );
+			this.AttachDelegate( name: "autoRacingWheelMaxForce", valueProvider: () => data.autoRacingWheelMaxForce );
 			this.AttachDelegate( name: "racingWheelOutputTorqueIsClipping", valueProvider: () => data.racingWheelOutputTorqueIsClipping );
 			this.AttachDelegate( name: "racingWheelCrashProtectionIsActive", valueProvider: () => data.racingWheelCrashProtectionIsActive );
 			this.AttachDelegate( name: "racingWheelCurbProtectionIsActive", valueProvider: () => data.racingWheelCurbProtectionIsActive );
@@ -95,6 +117,18 @@ namespace MarvinsAIRARefactoredSimHub
 
 			this.AttachDelegate( name: "pedalsThrottleFrequency", valueProvider: () => data.pedalsThrottleFrequency );
 			this.AttachDelegate( name: "pedalsThrottleAmplitude", valueProvider: () => data.pedalsThrottleAmplitude );
+
+			this.AttachDelegate( name: "algorithmName", valueProvider: () => algorithmName );
+			this.AttachDelegate(name: "algorithmParameterName_0", valueProvider: () => algorithmParameterName[0]);
+			this.AttachDelegate(name: "algorithmParameterName_1", valueProvider: () => algorithmParameterName[1]);
+			this.AttachDelegate(name: "algorithmParameterName_2", valueProvider: () => algorithmParameterName[2]);
+			this.AttachDelegate(name: "algorithmParameterName_3", valueProvider: () => algorithmParameterName[3]);
+			this.AttachDelegate(name: "algorithmParameterName_4", valueProvider: () => algorithmParameterName[4]);
+			this.AttachDelegate(name: "algorithmParameterValue_0", valueProvider: () => algorithmParameterValue[0]);
+			this.AttachDelegate(name: "algorithmParameterValue_1", valueProvider: () => algorithmParameterValue[1]);
+			this.AttachDelegate(name: "algorithmParameterValue_2", valueProvider: () => algorithmParameterValue[2]);
+			this.AttachDelegate(name: "algorithmParameterValue_3", valueProvider: () => algorithmParameterValue[3]);
+			this.AttachDelegate(name: "algorithmParameterValue_4", valueProvider: () => algorithmParameterValue[4]);
 		}
 
 		public void End( PluginManager pluginManager )
@@ -133,6 +167,71 @@ namespace MarvinsAIRARefactoredSimHub
 					}
 
 					memoryMappedFileViewAccessor?.Read( 0, out this.data );
+
+					long filePositionOffset = Marshal.SizeOf( typeof ( DataStruct ) );
+					int nameLength = 0;
+					int valueLength = 0;
+
+					byte[] stringBytes = new byte[this.data.algorithmNameLength];
+					memoryMappedFileViewAccessor?.ReadArray( filePositionOffset, stringBytes, 0, stringBytes.Length );
+					algorithmName = Encoding.Unicode.GetString( stringBytes );
+					filePositionOffset += stringBytes.Length;
+
+					for ( var i = 0; i < 5; i++ )
+					{
+						switch ( i )
+						{
+							case 0:
+								nameLength = this.data.algorithmParameterNameLength_0;
+								valueLength = this.data.algorithmParameterValueLength_0;
+								break;
+
+							case 1:
+								nameLength = this.data.algorithmParameterNameLength_1;
+								valueLength = this.data.algorithmParameterValueLength_1;
+								break;
+
+							case 2:
+								nameLength = this.data.algorithmParameterNameLength_2;
+								valueLength = this.data.algorithmParameterValueLength_2;
+								break;
+
+							case 3:
+								nameLength = this.data.algorithmParameterNameLength_3;
+								valueLength = this.data.algorithmParameterValueLength_3;
+								break;
+
+							case 4:
+								nameLength = this.data.algorithmParameterNameLength_4;
+								valueLength = this.data.algorithmParameterValueLength_4;
+								break;
+						}
+
+						if ( nameLength > 0 )
+						{
+							stringBytes = new byte[nameLength];
+							memoryMappedFileViewAccessor?.ReadArray( filePositionOffset, stringBytes, 0, stringBytes.Length );
+							algorithmParameterName[i] = Encoding.Unicode.GetString( stringBytes );
+							filePositionOffset += stringBytes.Length;
+						}
+						else
+						{
+							algorithmParameterName[i] = string.Empty;
+						}
+
+						if( valueLength > 0 )
+						{
+							stringBytes = new byte[valueLength];
+							memoryMappedFileViewAccessor?.ReadArray( filePositionOffset, stringBytes, 0, stringBytes.Length );
+							algorithmParameterValue[i] = Encoding.Unicode.GetString( stringBytes );
+							filePositionOffset += stringBytes.Length;
+						}
+						else
+						{
+							algorithmParameterValue[i] = string.Empty;
+						}
+					}
+
 
 					if ( Environment.TickCount >= nextConnectedCheck )
 					{
