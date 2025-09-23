@@ -3,33 +3,44 @@ using System;
 using System.IO;
 using System.IO.MemoryMappedFiles;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Windows.Media;
 
 using GameReaderCommon;
-
 using SimHub.Plugins;
 
 namespace MarvinsAIRARefactoredSimHub
 {
+
 	[PluginName( "MAIRA Refactored Data Plugin" )]
 	[PluginAuthor( "Marvin Herbold" )]
 	[PluginDescription( "Marvin's Awesome iRacing App Data Plugin" )]
 	public class MarvinsAIRARefactoredDataPlugin : IPlugin, IDataPlugin, IWPFSettingsV2
 	{
+		private const string MemoryMappedFileName = "Local\\MAIRARefactoredTelemetry";
+		private const int MaxStringLength = 128;
+
 		[StructLayout( LayoutKind.Sequential, Pack = 4 )]
-		public struct DataStruct
+		public unsafe struct DataBufferStruct
 		{
-			public int version;
 			public int tickCount;
 
 			public float racingWheelStrength;
 			public float racingWheelMaxForce;
 
+			public float racingWheelAutoTorque;
+
+			public int racingWheelAlgorithm;
+			public fixed byte racingWheelAlgorithmName[ MaxStringLength ];
+			public fixed float racingWheelAlgorithmSettings[ 5 ];
+
 			public float racingWheelOutputTorque;
 			public bool racingWheelOutputTorqueIsClipping;
+
 			public bool racingWheelCrashProtectionIsActive;
 			public bool racingWheelCurbProtectionIsActive;
-			public bool racingWheelIsFading;
+
+			public bool racingWheelFadingIsActive;
 
 			public float steeringEffectsUndersteerEffect;
 			public float steeringEffectsOversteerEffect;
@@ -43,9 +54,53 @@ namespace MarvinsAIRARefactoredSimHub
 
 			public float pedalsThrottleFrequency;
 			public float pedalsThrottleAmplitude;
+
+			public string GetAlgorithmName()
+			{
+				fixed ( byte* p = racingWheelAlgorithmName )
+				{
+					return Read( p, MaxStringLength );
+				}
+			}
+
+			public static unsafe string Read( byte* bytePtr, int capacity )
+			{
+				if ( bytePtr == null || capacity <= 0 ) return string.Empty;
+
+				var length = 0;
+
+				while ( length < capacity && bytePtr[ length ] != 0 ) length++;
+
+				if ( length == 0 ) return string.Empty;
+
+				var tmp = new byte[ length ];
+
+				Marshal.Copy( (IntPtr) bytePtr, tmp, 0, length );
+
+				return Encoding.UTF8.GetString( tmp );
+			}
 		}
 
-		private const string MemoryMappedFileName = "Local\\MAIRARefactoredTelemetry";
+		[StructLayout( LayoutKind.Sequential, Pack = 4 )]
+		public unsafe struct DataStruct
+		{
+			public int version;
+			public int bufferIndex;
+
+			public DataBufferStruct buffer0;
+			public DataBufferStruct buffer1;
+			public DataBufferStruct buffer2;
+
+			public static ref DataBufferStruct GetDataBuffer( ref DataStruct dataStruct, int index )
+			{
+				switch ( index )
+				{
+					case 0: return ref dataStruct.buffer0;
+					case 1: return ref dataStruct.buffer1;
+					default: return ref dataStruct.buffer2;
+				}
+			}
+		}
 
 		public PluginManager PluginManager { get; set; }
 
@@ -65,36 +120,52 @@ namespace MarvinsAIRARefactoredSimHub
 
 		private int lastTickCount = 0;
 
+		private ref DataBufferStruct DataBuffer => ref DataStruct.GetDataBuffer( ref data, data.bufferIndex );
+
 		public void Init( PluginManager pluginManager )
 		{
 			SimHub.Logging.Current.Info( "Starting MAIRA Refactored data plugin" );
 
-			this.AttachDelegate( name: "faulted", valueProvider: () => faulted );
-			this.AttachDelegate( name: "connected", valueProvider: () => connected );
+			unsafe
+			{
+				this.AttachDelegate( name: "faulted", valueProvider: () => faulted );
+				this.AttachDelegate( name: "connected", valueProvider: () => connected );
 
-			this.AttachDelegate( name: "tickCount", valueProvider: () => data.tickCount );
+				this.AttachDelegate( name: "tickCount", valueProvider: () => DataBuffer.tickCount );
 
-			this.AttachDelegate( name: "racingWheelStrength", valueProvider: () => data.racingWheelStrength );
-			this.AttachDelegate( name: "racingWheelMaxForce", valueProvider: () => data.racingWheelMaxForce );
+				this.AttachDelegate( name: "racingWheelStrength", valueProvider: () => DataBuffer.racingWheelStrength );
+				this.AttachDelegate( name: "racingWheelMaxForce", valueProvider: () => DataBuffer.racingWheelMaxForce );
 
-			this.AttachDelegate( name: "racingWheelOutputTorque", valueProvider: () => data.racingWheelOutputTorque );
-			this.AttachDelegate( name: "racingWheelOutputTorqueIsClipping", valueProvider: () => data.racingWheelOutputTorqueIsClipping );
-			this.AttachDelegate( name: "racingWheelCrashProtectionIsActive", valueProvider: () => data.racingWheelCrashProtectionIsActive );
-			this.AttachDelegate( name: "racingWheelCurbProtectionIsActive", valueProvider: () => data.racingWheelCurbProtectionIsActive );
-			this.AttachDelegate( name: "racingWheelIsFading", valueProvider: () => data.racingWheelIsFading );
+				this.AttachDelegate( name: "racingWheelAutoTorque", valueProvider: () => DataBuffer.racingWheelAutoTorque );
 
-			this.AttachDelegate( name: "steeringEffectsUndersteerEffect", valueProvider: () => data.steeringEffectsUndersteerEffect );
-			this.AttachDelegate( name: "steeringEffectsOversteerEffect", valueProvider: () => data.steeringEffectsOversteerEffect );
-			this.AttachDelegate( name: "steeringEffectsSkidSlip", valueProvider: () => data.steeringEffectsSkidSlip );
+				this.AttachDelegate( name: "racingWheelAlgorithmName", valueProvider: () => DataBuffer.GetAlgorithmName() );
+				this.AttachDelegate( name: "racingWheelAlgorithmSetting0", valueProvider: () => DataBuffer.racingWheelAlgorithmSettings[ 0 ] );
+				this.AttachDelegate( name: "racingWheelAlgorithmSetting1", valueProvider: () => DataBuffer.racingWheelAlgorithmSettings[ 1 ] );
+				this.AttachDelegate( name: "racingWheelAlgorithmSetting2", valueProvider: () => DataBuffer.racingWheelAlgorithmSettings[ 2 ] );
+				this.AttachDelegate( name: "racingWheelAlgorithmSetting3", valueProvider: () => DataBuffer.racingWheelAlgorithmSettings[ 3 ] );
+				this.AttachDelegate( name: "racingWheelAlgorithmSetting4", valueProvider: () => DataBuffer.racingWheelAlgorithmSettings[ 4 ] );
 
-			this.AttachDelegate( name: "pedalsClutchFrequency", valueProvider: () => data.pedalsClutchFrequency );
-			this.AttachDelegate( name: "pedalsClutchAmplitude", valueProvider: () => data.pedalsClutchAmplitude );
+				this.AttachDelegate( name: "racingWheelOutputTorque", valueProvider: () => DataBuffer.racingWheelOutputTorque );
+				this.AttachDelegate( name: "racingWheelOutputTorqueIsClipping", valueProvider: () => DataBuffer.racingWheelOutputTorqueIsClipping );
 
-			this.AttachDelegate( name: "pedalsBrakeFrequency", valueProvider: () => data.pedalsBrakeFrequency );
-			this.AttachDelegate( name: "pedalsBrakeAmplitude", valueProvider: () => data.pedalsBrakeAmplitude );
+				this.AttachDelegate( name: "racingWheelCrashProtectionIsActive", valueProvider: () => DataBuffer.racingWheelCrashProtectionIsActive );
+				this.AttachDelegate( name: "racingWheelCurbProtectionIsActive", valueProvider: () => DataBuffer.racingWheelCurbProtectionIsActive );
 
-			this.AttachDelegate( name: "pedalsThrottleFrequency", valueProvider: () => data.pedalsThrottleFrequency );
-			this.AttachDelegate( name: "pedalsThrottleAmplitude", valueProvider: () => data.pedalsThrottleAmplitude );
+				this.AttachDelegate( name: "racingWheelFadingIsActive", valueProvider: () => DataBuffer.racingWheelFadingIsActive );
+
+				this.AttachDelegate( name: "steeringEffectsUndersteerEffect", valueProvider: () => DataBuffer.steeringEffectsUndersteerEffect );
+				this.AttachDelegate( name: "steeringEffectsOversteerEffect", valueProvider: () => DataBuffer.steeringEffectsOversteerEffect );
+				this.AttachDelegate( name: "steeringEffectsSkidSlip", valueProvider: () => DataBuffer.steeringEffectsSkidSlip );
+
+				this.AttachDelegate( name: "pedalsClutchFrequency", valueProvider: () => DataBuffer.pedalsClutchFrequency );
+				this.AttachDelegate( name: "pedalsClutchAmplitude", valueProvider: () => DataBuffer.pedalsClutchAmplitude );
+
+				this.AttachDelegate( name: "pedalsBrakeFrequency", valueProvider: () => DataBuffer.pedalsBrakeFrequency );
+				this.AttachDelegate( name: "pedalsBrakeAmplitude", valueProvider: () => DataBuffer.pedalsBrakeAmplitude );
+
+				this.AttachDelegate( name: "pedalsThrottleFrequency", valueProvider: () => DataBuffer.pedalsThrottleFrequency );
+				this.AttachDelegate( name: "pedalsThrottleAmplitude", valueProvider: () => DataBuffer.pedalsThrottleAmplitude );
+			}
 		}
 
 		public void End( PluginManager pluginManager )
@@ -134,10 +205,17 @@ namespace MarvinsAIRARefactoredSimHub
 
 					memoryMappedFileViewAccessor?.Read( 0, out this.data );
 
+					if ( this.data.version != 2 )
+					{
+						SimHub.Logging.Current.Info( $"MAIRA Refactored data plugin detected an invalid data version {this.data.version}!" );
+
+						throw new Exception( $"Invalid data version {this.data.version}" );
+					}
+
 					if ( Environment.TickCount >= nextConnectedCheck )
 					{
-						connected = this.data.tickCount != lastTickCount;
-						lastTickCount = this.data.tickCount;
+						connected = DataBuffer.tickCount != lastTickCount;
+						lastTickCount = DataBuffer.tickCount;
 						nextConnectedCheck = Environment.TickCount + 1000;
 					}
 				}
