@@ -51,6 +51,7 @@ namespace MarvinsAIRARefactoredSimHub
 
 			public float steeringEffectsUndersteerEffect;
 			public float steeringEffectsOversteerEffect;
+			public float steeringEffectsSeatOfPantsEffect;
 			public float steeringEffectsSkidSlip;
 
 			public float pedalsClutchFrequency;
@@ -215,6 +216,7 @@ namespace MarvinsAIRARefactoredSimHub
 
 				this.AttachDelegate( name: "steeringEffectsUndersteerEffect", valueProvider: () => DataBuffer.steeringEffectsUndersteerEffect );
 				this.AttachDelegate( name: "steeringEffectsOversteerEffect", valueProvider: () => DataBuffer.steeringEffectsOversteerEffect );
+				this.AttachDelegate( name: "steeringEffectsSeatOfPantsEffect", valueProvider: () => DataBuffer.steeringEffectsSeatOfPantsEffect );
 				this.AttachDelegate( name: "steeringEffectsSkidSlip", valueProvider: () => DataBuffer.steeringEffectsSkidSlip );
 
 				this.AttachDelegate( name: "pedalsClutchFrequency", valueProvider: () => DataBuffer.pedalsClutchFrequency );
@@ -265,7 +267,7 @@ namespace MarvinsAIRARefactoredSimHub
 
 					memoryMappedFileViewAccessor?.Read( 0, out this.data );
 
-					if ( this.data.version != 3 )
+					if ( this.data.version != 4 )
 					{
 						SimHub.Logging.Current.Info( $"MAIRA Refactored data plugin detected an invalid data version {this.data.version}!" );
 
