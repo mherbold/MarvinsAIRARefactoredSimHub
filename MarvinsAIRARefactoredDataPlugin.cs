@@ -33,9 +33,13 @@ namespace MarvinsAIRARefactoredSimHub
 			public int racingWheelAlgorithm;
 			public fixed byte racingWheelAlgorithmName[ MaxStringLengthInBytes ];
 
-			public fixed float racingWheelAlgorithmSettings[ 5 ];
-			public fixed byte racingWheelAlgorithmSettingNames[ 5 * MaxStringLengthInBytes ];
-			public fixed byte racingWheelAlgorithmSettingValues[ 5 * MaxStringLengthInBytes ];
+			public bool racingWheelAlgorithmSoftLimiterIsEnabled;
+			public fixed byte racingWheelAlgorithmSoftLimiterName[ MaxStringLengthInBytes ];
+			public fixed byte racingWheelAlgorithmSoftLimiterValue[ MaxStringLengthInBytes ];
+
+			public fixed float racingWheelAlgorithmSettings[ 4 ];
+			public fixed byte racingWheelAlgorithmSettingNames[ 4 * MaxStringLengthInBytes ];
+			public fixed byte racingWheelAlgorithmSettingValues[ 4 * MaxStringLengthInBytes ];
 
 			public float racingWheelOutputTorque;
 			public bool racingWheelOutputTorqueIsClipping;
@@ -58,7 +62,7 @@ namespace MarvinsAIRARefactoredSimHub
 			public float pedalsThrottleFrequency;
 			public float pedalsThrottleAmplitude;
 
-			public string GetAlgorithmName()
+			public string GetRacingWheelAlgorithmName()
 			{
 				fixed ( byte* bytePtr = racingWheelAlgorithmName )
 				{
@@ -66,7 +70,23 @@ namespace MarvinsAIRARefactoredSimHub
 				}
 			}
 
-			public string GetAlgorithmSettingName( int index )
+			public string GetRacingWheelAlgorithmSoftLimiterName()
+			{
+				fixed ( byte* bytePtr = racingWheelAlgorithmSoftLimiterName )
+				{
+					return ReadString( bytePtr, 0, MaxStringLengthInBytes );
+				}
+			}
+
+			public string GetRacingWheelAlgorithmSoftLimiterValue()
+			{
+				fixed ( byte* bytePtr = racingWheelAlgorithmSoftLimiterValue )
+				{
+					return ReadString( bytePtr, 0, MaxStringLengthInBytes );
+				}
+			}
+
+			public string GetRacingWheelAlgorithmSettingName( int index )
 			{
 				if ( index < 0 || index >= 5 ) return string.Empty;
 
@@ -76,7 +96,7 @@ namespace MarvinsAIRARefactoredSimHub
 				}
 			}
 
-			public string GetAlgorithmSettingValue( int index )
+			public string GetRacingWheelAlgorithmSettingValue( int index )
 			{
 				if ( index < 0 || index >= 5 ) return string.Empty;
 
@@ -164,25 +184,26 @@ namespace MarvinsAIRARefactoredSimHub
 				this.AttachDelegate( name: "racingWheelAutoTorque", valueProvider: () => DataBuffer.racingWheelAutoTorque );
 
 				this.AttachDelegate( name: "racingWheelAlgorithm", valueProvider: () => DataBuffer.racingWheelAlgorithm );
-				this.AttachDelegate( name: "racingWheelAlgorithmName", valueProvider: () => DataBuffer.GetAlgorithmName() );
+				this.AttachDelegate( name: "racingWheelAlgorithmName", valueProvider: () => DataBuffer.GetRacingWheelAlgorithmName() );
+
+				this.AttachDelegate( name: "racingWheelAlgorithmSoftLimiterIsEnabled", valueProvider: () => DataBuffer.racingWheelAlgorithmSoftLimiterIsEnabled );
+				this.AttachDelegate( name: "racingWheelAlgorithmSoftLimiterName", valueProvider: () => DataBuffer.GetRacingWheelAlgorithmSoftLimiterName() );
+				this.AttachDelegate( name: "racingWheelAlgorithmSoftLimiterValue", valueProvider: () => DataBuffer.GetRacingWheelAlgorithmSoftLimiterValue() );
 
 				this.AttachDelegate( name: "racingWheelAlgorithmSetting0", valueProvider: () => DataBuffer.racingWheelAlgorithmSettings[ 0 ] );
 				this.AttachDelegate( name: "racingWheelAlgorithmSetting1", valueProvider: () => DataBuffer.racingWheelAlgorithmSettings[ 1 ] );
 				this.AttachDelegate( name: "racingWheelAlgorithmSetting2", valueProvider: () => DataBuffer.racingWheelAlgorithmSettings[ 2 ] );
 				this.AttachDelegate( name: "racingWheelAlgorithmSetting3", valueProvider: () => DataBuffer.racingWheelAlgorithmSettings[ 3 ] );
-				this.AttachDelegate( name: "racingWheelAlgorithmSetting4", valueProvider: () => DataBuffer.racingWheelAlgorithmSettings[ 4 ] );
 
-				this.AttachDelegate( name: "racingWheelAlgorithmSettingName0", valueProvider: () => DataBuffer.GetAlgorithmSettingName( 0 ) );
-				this.AttachDelegate( name: "racingWheelAlgorithmSettingName1", valueProvider: () => DataBuffer.GetAlgorithmSettingName( 1 ) );
-				this.AttachDelegate( name: "racingWheelAlgorithmSettingName2", valueProvider: () => DataBuffer.GetAlgorithmSettingName( 2 ) );
-				this.AttachDelegate( name: "racingWheelAlgorithmSettingName3", valueProvider: () => DataBuffer.GetAlgorithmSettingName( 3 ) );
-				this.AttachDelegate( name: "racingWheelAlgorithmSettingName4", valueProvider: () => DataBuffer.GetAlgorithmSettingName( 4 ) );
+				this.AttachDelegate( name: "racingWheelAlgorithmSettingName0", valueProvider: () => DataBuffer.GetRacingWheelAlgorithmSettingName( 0 ) );
+				this.AttachDelegate( name: "racingWheelAlgorithmSettingName1", valueProvider: () => DataBuffer.GetRacingWheelAlgorithmSettingName( 1 ) );
+				this.AttachDelegate( name: "racingWheelAlgorithmSettingName2", valueProvider: () => DataBuffer.GetRacingWheelAlgorithmSettingName( 2 ) );
+				this.AttachDelegate( name: "racingWheelAlgorithmSettingName3", valueProvider: () => DataBuffer.GetRacingWheelAlgorithmSettingName( 3 ) );
 
-				this.AttachDelegate( name: "racingWheelAlgorithmSettingValue0", valueProvider: () => DataBuffer.GetAlgorithmSettingValue( 0 ) );
-				this.AttachDelegate( name: "racingWheelAlgorithmSettingValue1", valueProvider: () => DataBuffer.GetAlgorithmSettingValue( 1 ) );
-				this.AttachDelegate( name: "racingWheelAlgorithmSettingValue2", valueProvider: () => DataBuffer.GetAlgorithmSettingValue( 2 ) );
-				this.AttachDelegate( name: "racingWheelAlgorithmSettingValue3", valueProvider: () => DataBuffer.GetAlgorithmSettingValue( 3 ) );
-				this.AttachDelegate( name: "racingWheelAlgorithmSettingValue4", valueProvider: () => DataBuffer.GetAlgorithmSettingValue( 4 ) );
+				this.AttachDelegate( name: "racingWheelAlgorithmSettingValue0", valueProvider: () => DataBuffer.GetRacingWheelAlgorithmSettingValue( 0 ) );
+				this.AttachDelegate( name: "racingWheelAlgorithmSettingValue1", valueProvider: () => DataBuffer.GetRacingWheelAlgorithmSettingValue( 1 ) );
+				this.AttachDelegate( name: "racingWheelAlgorithmSettingValue2", valueProvider: () => DataBuffer.GetRacingWheelAlgorithmSettingValue( 2 ) );
+				this.AttachDelegate( name: "racingWheelAlgorithmSettingValue3", valueProvider: () => DataBuffer.GetRacingWheelAlgorithmSettingValue( 3 ) );
 
 				this.AttachDelegate( name: "racingWheelOutputTorque", valueProvider: () => DataBuffer.racingWheelOutputTorque );
 				this.AttachDelegate( name: "racingWheelOutputTorqueIsClipping", valueProvider: () => DataBuffer.racingWheelOutputTorqueIsClipping );
@@ -244,7 +265,7 @@ namespace MarvinsAIRARefactoredSimHub
 
 					memoryMappedFileViewAccessor?.Read( 0, out this.data );
 
-					if ( this.data.version != 2 )
+					if ( this.data.version != 3 )
 					{
 						SimHub.Logging.Current.Info( $"MAIRA Refactored data plugin detected an invalid data version {this.data.version}!" );
 
