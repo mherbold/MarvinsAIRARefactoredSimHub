@@ -20,6 +20,8 @@ namespace MarvinsAIRARefactoredSimHub
 		private const string MemoryMappedFileName = "Local\\MAIRARefactoredTelemetry";
 		private const int MaxStringLengthInBytes = 256;
 
+		private const int ExpectedVersion = 4;
+
 		[StructLayout( LayoutKind.Sequential, Pack = 4 )]
 		public unsafe struct DataBufferStruct
 		{
@@ -174,6 +176,8 @@ namespace MarvinsAIRARefactoredSimHub
 
 			unsafe
 			{
+				this.AttachDelegate( name: "version", valueProvider: () => $"{ExpectedVersion},{this.data.version}" );
+
 				this.AttachDelegate( name: "faulted", valueProvider: () => faulted );
 				this.AttachDelegate( name: "connected", valueProvider: () => connected );
 
@@ -267,7 +271,7 @@ namespace MarvinsAIRARefactoredSimHub
 
 					memoryMappedFileViewAccessor?.Read( 0, out this.data );
 
-					if ( this.data.version != 4 )
+					if ( this.data.version != ExpectedVersion )
 					{
 						SimHub.Logging.Current.Info( $"MAIRA Refactored data plugin detected an invalid data version {this.data.version}!" );
 
