@@ -156,6 +156,8 @@ namespace MarvinsAIRARefactoredSimHub
 
 		public string LeftMenuTitle => "MAIRA Refactored data plugin";
 
+		private PluginSettings Settings { get; set; }
+
 		private DataStruct data = new DataStruct();
 		private MemoryMappedFile memoryMappedFile = null;
 		private MemoryMappedViewAccessor memoryMappedFileViewAccessor = null;
@@ -173,6 +175,8 @@ namespace MarvinsAIRARefactoredSimHub
 		public void Init( PluginManager pluginManager )
 		{
 			SimHub.Logging.Current.Info( "Starting MAIRA Refactored data plugin" );
+
+			Settings = this.ReadCommonSettings<PluginSettings>("MAIRAPluginSettings.json", () => new PluginSettings());
 
 			unsafe
 			{
@@ -231,11 +235,17 @@ namespace MarvinsAIRARefactoredSimHub
 
 				this.AttachDelegate( name: "pedalsThrottleFrequency", valueProvider: () => DataBuffer.pedalsThrottleFrequency );
 				this.AttachDelegate( name: "pedalsThrottleAmplitude", valueProvider: () => DataBuffer.pedalsThrottleAmplitude );
+
+				this.AttachDelegate( name: "overlaysShowInPractice", valueProvider: () => Settings.OverlaysShowInPractice );
+				this.AttachDelegate( name: "overlaysShowInQualifying", valueProvider: () => Settings.OverlaysShowInQualifying );
+				this.AttachDelegate( name: "overlaysShowInRace", valueProvider: () => Settings.OverlaysShowInRace );
+				this.AttachDelegate( name: "overlaysShowInTestDrive", valueProvider: () => Settings.OverlaysShowInTestDrive );
 			}
 		}
 
 		public void End( PluginManager pluginManager )
 		{
+			this.SaveCommonSettings("MAIRAPluginSettings.json", Settings);
 		}
 
 		public void DataUpdate( PluginManager pluginManager, ref GameData data )
@@ -294,7 +304,15 @@ namespace MarvinsAIRARefactoredSimHub
 
 		public System.Windows.Controls.Control GetWPFSettingsControl( PluginManager pluginManager )
 		{
-			return null;
+			return new PluginControl( Settings );
 		}
+	}
+
+	public class PluginSettings
+	{
+		public bool OverlaysShowInPractice { get; set; } = true;
+		public bool OverlaysShowInQualifying { get; set; } = true;
+		public bool OverlaysShowInRace { get; set; } = true;
+		public bool OverlaysShowInTestDrive { get; set; } = true;
 	}
 }
