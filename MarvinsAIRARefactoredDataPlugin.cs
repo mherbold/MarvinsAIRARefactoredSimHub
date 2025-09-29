@@ -176,7 +176,7 @@ namespace MarvinsAIRARefactoredSimHub
 		{
 			SimHub.Logging.Current.Info( "Starting MAIRA Refactored data plugin" );
 
-			Settings = this.ReadCommonSettings<PluginSettings>("MAIRAPluginSettings.json", () => new PluginSettings());
+			Settings = this.ReadCommonSettings<PluginSettings>("MarvinsAIRARefactoredDataPlugin_Settings.json", () => new PluginSettings());
 
 			unsafe
 			{
@@ -245,7 +245,7 @@ namespace MarvinsAIRARefactoredSimHub
 
 		public void End( PluginManager pluginManager )
 		{
-			this.SaveCommonSettings("MAIRAPluginSettings.json", Settings);
+			this.SaveCommonSettings("MarvinsAIRARefactoredDataPlugin_Settings.json", Settings);
 		}
 
 		public void DataUpdate( PluginManager pluginManager, ref GameData data )
