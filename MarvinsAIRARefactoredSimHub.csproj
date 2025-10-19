@@ -41,8 +41,7 @@
       <HintPath>C:\Program Files (x86)\SimHub\GameReaderCommon.dll</HintPath>
     </Reference>
     <Reference Include="log4net, Version=3.0.4.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>C:\Program Files (x86)\SimHub\log4net.dll</HintPath>
+      <HintPath>..\MarvinsAIRARefactored\packages\log4net.3.0.4\lib\net462\log4net.dll</HintPath>
     </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
@@ -80,6 +79,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="maira-universal.ico" />
