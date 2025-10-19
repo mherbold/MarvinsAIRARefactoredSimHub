@@ -4,8 +4,6 @@ namespace MarvinsAIRARefactoredSimHub
 {
     public partial class PluginControl : UserControl
     {
-        private readonly PluginSettings _settings;
-
         public PluginControl(PluginSettings settings)
         {
             InitializeComponent();
