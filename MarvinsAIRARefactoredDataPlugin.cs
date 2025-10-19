@@ -4,7 +4,6 @@ using System.IO;
 using System.IO.MemoryMappedFiles;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Web.ModelBinding;
 using System.Windows.Media;
 
 using GameReaderCommon;
