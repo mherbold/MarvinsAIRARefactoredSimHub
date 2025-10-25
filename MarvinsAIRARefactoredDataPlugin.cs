@@ -20,7 +20,7 @@ namespace MarvinsAIRARefactoredSimHub
 		private const string MemoryMappedFileName = "Local\\MAIRARefactoredTelemetry";
 		private const int MaxStringLengthInBytes = 256;
 
-		private const int ExpectedVersion = 4;
+		private const int ExpectedVersion = 5;
 
 		[StructLayout( LayoutKind.Sequential, Pack = 4 )]
 		public unsafe struct DataBufferStruct
@@ -51,9 +51,54 @@ namespace MarvinsAIRARefactoredSimHub
 
 			public bool racingWheelFadingIsActive;
 
+			public fixed byte steeringEffectsCalibrationFileName[ MaxStringLengthInBytes ];
+
+			public float steeringEffectsUndersteerMinThreshold;
+			public float steeringEffectsUndersteerMaxThreshold;
+			public fixed byte steeringEffectsUndersteerVibrationPattern[ MaxStringLengthInBytes ];
+			public float steeringEffectsUndersteerVibrationStrength;
+			public float steeringEffectsUndersteerVibrationMinFrequency;
+			public float steeringEffectsUndersteerVibrationMaxFrequency;
+			public float steeringEffectsUndersteerVibrationCurve;
+			public fixed byte steeringEffectsUndersteerForceDirection[ MaxStringLengthInBytes ];
+			public float steeringEffectsUndersteerForceStrength;
+			public float steeringEffectsUndersteerForceCurve;
+			public float steeringEffectsUndersteerPedalVibrationMinFrequency;
+			public float steeringEffectsUndersteerPedalVibrationMaxFrequency;
+			public float steeringEffectsUndersteerPedalVibrationCurve;
 			public float steeringEffectsUndersteerEffect;
+
+			public float steeringEffectsOversteerMinThreshold;
+			public float steeringEffectsOversteerMaxThreshold;
+			public fixed byte steeringEffectsOversteerVibrationPattern[ MaxStringLengthInBytes ];
+			public float steeringEffectsOversteerVibrationStrength;
+			public float steeringEffectsOversteerVibrationMinFrequency;
+			public float steeringEffectsOversteerVibrationMaxFrequency;
+			public float steeringEffectsOversteerVibrationCurve;
+			public fixed byte steeringEffectsOversteerForceDirection[ MaxStringLengthInBytes ];
+			public float steeringEffectsOversteerForceStrength;
+			public float steeringEffectsOversteerForceCurve;
+			public float steeringEffectsOversteerPedalVibrationMinFrequency;
+			public float steeringEffectsOversteerPedalVibrationMaxFrequency;
+			public float steeringEffectsOversteerPedalVibrationCurve;
 			public float steeringEffectsOversteerEffect;
+
+			public float steeringEffectsSeatOfPantsMinThreshold;
+			public float steeringEffectsSeatOfPantsMaxThreshold;
+			public fixed byte steeringEffectsSeatOfPantsAlgorithm[ MaxStringLengthInBytes ];
+			public fixed byte steeringEffectsSeatOfPantsVibrationPattern[ MaxStringLengthInBytes ];
+			public float steeringEffectsSeatOfPantsVibrationStrength;
+			public float steeringEffectsSeatOfPantsVibrationMinFrequency;
+			public float steeringEffectsSeatOfPantsVibrationMaxFrequency;
+			public float steeringEffectsSeatOfPantsVibrationCurve;
+			public fixed byte steeringEffectsSeatOfPantsForceDirection[ MaxStringLengthInBytes ];
+			public float steeringEffectsSeatOfPantsForceStrength;
+			public float steeringEffectsSeatOfPantsForceCurve;
+			public float steeringEffectsSeatOfPantsPedalVibrationMinFrequency;
+			public float steeringEffectsSeatOfPantsPedalVibrationMaxFrequency;
+			public float steeringEffectsSeatOfPantsPedalVibrationCurve;
 			public float steeringEffectsSeatOfPantsEffect;
+
 			public float steeringEffectsSkidSlip;
 
 			public float pedalsClutchFrequency;
@@ -109,6 +154,70 @@ namespace MarvinsAIRARefactoredSimHub
 				}
 			}
 
+			public string GetSteeringEffectsCalibrationFileName()
+			{
+				fixed ( byte* bytePtr = steeringEffectsCalibrationFileName )
+				{
+					return ReadString( bytePtr, 0, MaxStringLengthInBytes );
+				}
+			}
+
+			public string GetSteeringEffectsUndersteerVibrationPattern()
+			{
+				fixed ( byte* bytePtr = steeringEffectsUndersteerVibrationPattern )
+				{
+					return ReadString( bytePtr, 0, MaxStringLengthInBytes );
+				}
+			}
+
+			public string GetSteeringEffectsUndersteerForceDirection()
+			{
+				fixed ( byte* bytePtr = steeringEffectsUndersteerForceDirection )
+				{
+					return ReadString( bytePtr, 0, MaxStringLengthInBytes );
+				}
+			}
+
+			public string GetSteeringEffectsOversteerVibrationPattern()
+			{
+				fixed ( byte* bytePtr = steeringEffectsOversteerVibrationPattern )
+				{
+					return ReadString( bytePtr, 0, MaxStringLengthInBytes );
+				}
+			}
+
+			public string GetSteeringEffectsOversteerForceDirection()
+			{
+				fixed ( byte* bytePtr = steeringEffectsOversteerForceDirection )
+				{
+					return ReadString( bytePtr, 0, MaxStringLengthInBytes );
+				}
+			}
+
+			public string GetSteeringEffectsSeatOfPantsAlgorithm()
+			{
+				fixed ( byte* bytePtr = steeringEffectsSeatOfPantsAlgorithm )
+				{
+					return ReadString( bytePtr, 0, MaxStringLengthInBytes );
+				}
+			}
+
+			public string GetSteeringEffectsSeatOfPantsVibrationPattern()
+			{
+				fixed ( byte* bytePtr = steeringEffectsSeatOfPantsVibrationPattern )
+				{
+					return ReadString( bytePtr, 0, MaxStringLengthInBytes );
+				}
+			}
+
+			public string GetSteeringEffectsSeatOfPantsForceDirection()
+			{
+				fixed ( byte* bytePtr = steeringEffectsSeatOfPantsForceDirection )
+				{
+					return ReadString( bytePtr, 0, MaxStringLengthInBytes );
+				}
+			}
+
 			public static unsafe string ReadString( byte* bytePtr, int index, int capacity )
 			{
 				if ( bytePtr == null || capacity <= 0 ) return string.Empty;
@@ -156,6 +265,8 @@ namespace MarvinsAIRARefactoredSimHub
 
 		public string LeftMenuTitle => "MAIRA Refactored data plugin";
 
+		private PluginSettings Settings { get; set; }
+
 		private DataStruct data = new DataStruct();
 		private MemoryMappedFile memoryMappedFile = null;
 		private MemoryMappedViewAccessor memoryMappedFileViewAccessor = null;
@@ -173,6 +284,8 @@ namespace MarvinsAIRARefactoredSimHub
 		public void Init( PluginManager pluginManager )
 		{
 			SimHub.Logging.Current.Info( "Starting MAIRA Refactored data plugin" );
+
+			Settings = this.ReadCommonSettings<PluginSettings>("MarvinsAIRARefactoredDataPlugin_Settings.json", () => new PluginSettings());
 
 			unsafe
 			{
@@ -218,9 +331,54 @@ namespace MarvinsAIRARefactoredSimHub
 
 				this.AttachDelegate( name: "racingWheelFadingIsActive", valueProvider: () => DataBuffer.racingWheelFadingIsActive );
 
+				this.AttachDelegate( name: "steeringEffectsCalibrationFileName", valueProvider: () => DataBuffer.GetSteeringEffectsCalibrationFileName() );
+
+				this.AttachDelegate( name: "steeringEffectsUndersteerMinThreshold", valueProvider: () => DataBuffer.steeringEffectsUndersteerMinThreshold );
+				this.AttachDelegate( name: "steeringEffectsUndersteerMaxThreshold", valueProvider: () => DataBuffer.steeringEffectsUndersteerMaxThreshold );
+				this.AttachDelegate( name: "steeringEffectsUndersteerVibrationPattern", valueProvider: () => DataBuffer.GetSteeringEffectsUndersteerVibrationPattern() );
+				this.AttachDelegate( name: "steeringEffectsUndersteerVibrationStrength", valueProvider: () => DataBuffer.steeringEffectsUndersteerVibrationStrength );
+				this.AttachDelegate( name: "steeringEffectsUndersteerVibrationMinFrequency", valueProvider: () => DataBuffer.steeringEffectsUndersteerVibrationMinFrequency );
+				this.AttachDelegate( name: "steeringEffectsUndersteerVibrationMaxFrequency", valueProvider: () => DataBuffer.steeringEffectsUndersteerVibrationMaxFrequency );
+				this.AttachDelegate( name: "steeringEffectsUndersteerVibrationCurve", valueProvider: () => DataBuffer.steeringEffectsUndersteerVibrationCurve );
+				this.AttachDelegate( name: "steeringEffectsUndersteerForceDirection", valueProvider: () => DataBuffer.GetSteeringEffectsUndersteerForceDirection() );
+				this.AttachDelegate( name: "steeringEffectsUndersteerForceStrength", valueProvider: () => DataBuffer.steeringEffectsUndersteerForceStrength );
+				this.AttachDelegate( name: "steeringEffectsUndersteerForceCurve", valueProvider: () => DataBuffer.steeringEffectsUndersteerForceCurve );
+				this.AttachDelegate( name: "steeringEffectsUndersteerPedalVibrationMinFrequency", valueProvider: () => DataBuffer.steeringEffectsUndersteerPedalVibrationMinFrequency );
+				this.AttachDelegate( name: "steeringEffectsUndersteerPedalVibrationMaxFrequency", valueProvider: () => DataBuffer.steeringEffectsUndersteerPedalVibrationMaxFrequency );
+				this.AttachDelegate( name: "steeringEffectsUndersteerPedalVibrationCurve", valueProvider: () => DataBuffer.steeringEffectsUndersteerPedalVibrationCurve );
 				this.AttachDelegate( name: "steeringEffectsUndersteerEffect", valueProvider: () => DataBuffer.steeringEffectsUndersteerEffect );
+
+				this.AttachDelegate( name: "steeringEffectsOversteerMinThreshold", valueProvider: () => DataBuffer.steeringEffectsOversteerMinThreshold );
+				this.AttachDelegate( name: "steeringEffectsOversteerMaxThreshold", valueProvider: () => DataBuffer.steeringEffectsOversteerMaxThreshold );
+				this.AttachDelegate( name: "steeringEffectsOversteerVibrationPattern", valueProvider: () => DataBuffer.GetSteeringEffectsOversteerVibrationPattern() );
+				this.AttachDelegate( name: "steeringEffectsOversteerVibrationStrength", valueProvider: () => DataBuffer.steeringEffectsOversteerVibrationStrength );
+				this.AttachDelegate( name: "steeringEffectsOversteerVibrationMinFrequency", valueProvider: () => DataBuffer.steeringEffectsOversteerVibrationMinFrequency );
+				this.AttachDelegate( name: "steeringEffectsOversteerVibrationMaxFrequency", valueProvider: () => DataBuffer.steeringEffectsOversteerVibrationMaxFrequency );
+				this.AttachDelegate( name: "steeringEffectsOversteerVibrationCurve", valueProvider: () => DataBuffer.steeringEffectsOversteerVibrationCurve );
+				this.AttachDelegate( name: "steeringEffectsOversteerForceDirection", valueProvider: () => DataBuffer.GetSteeringEffectsOversteerForceDirection() );
+				this.AttachDelegate( name: "steeringEffectsOversteerForceStrength", valueProvider: () => DataBuffer.steeringEffectsOversteerForceStrength );
+				this.AttachDelegate( name: "steeringEffectsOversteerForceCurve", valueProvider: () => DataBuffer.steeringEffectsOversteerForceCurve );
+				this.AttachDelegate( name: "steeringEffectsOversteerPedalVibrationMinFrequency", valueProvider: () => DataBuffer.steeringEffectsOversteerPedalVibrationMinFrequency );
+				this.AttachDelegate( name: "steeringEffectsOversteerPedalVibrationMaxFrequency", valueProvider: () => DataBuffer.steeringEffectsOversteerPedalVibrationMaxFrequency );
+				this.AttachDelegate( name: "steeringEffectsOversteerPedalVibrationCurve", valueProvider: () => DataBuffer.steeringEffectsOversteerPedalVibrationCurve );
 				this.AttachDelegate( name: "steeringEffectsOversteerEffect", valueProvider: () => DataBuffer.steeringEffectsOversteerEffect );
+
+				this.AttachDelegate( name: "steeringEffectsSeatOfPantsMinThreshold", valueProvider: () => DataBuffer.steeringEffectsSeatOfPantsMinThreshold );
+				this.AttachDelegate( name: "steeringEffectsSeatOfPantsMaxThreshold", valueProvider: () => DataBuffer.steeringEffectsSeatOfPantsMaxThreshold );
+				this.AttachDelegate( name: "steeringEffectsSeatOfPantsAlgorithm", valueProvider: () => DataBuffer.GetSteeringEffectsSeatOfPantsAlgorithm() );
+				this.AttachDelegate( name: "steeringEffectsSeatOfPantsVibrationPattern", valueProvider: () => DataBuffer.GetSteeringEffectsSeatOfPantsVibrationPattern() );
+				this.AttachDelegate( name: "steeringEffectsSeatOfPantsVibrationStrength", valueProvider: () => DataBuffer.steeringEffectsSeatOfPantsVibrationStrength );
+				this.AttachDelegate( name: "steeringEffectsSeatOfPantsVibrationMinFrequency", valueProvider: () => DataBuffer.steeringEffectsSeatOfPantsVibrationMinFrequency );
+				this.AttachDelegate( name: "steeringEffectsSeatOfPantsVibrationMaxFrequency", valueProvider: () => DataBuffer.steeringEffectsSeatOfPantsVibrationMaxFrequency );
+				this.AttachDelegate( name: "steeringEffectsSeatOfPantsVibrationCurve", valueProvider: () => DataBuffer.steeringEffectsSeatOfPantsVibrationCurve );
+				this.AttachDelegate( name: "steeringEffectsSeatOfPantsForceDirection", valueProvider: () => DataBuffer.GetSteeringEffectsSeatOfPantsForceDirection() );
+				this.AttachDelegate( name: "steeringEffectsSeatOfPantsForceStrength", valueProvider: () => DataBuffer.steeringEffectsSeatOfPantsForceStrength );
+				this.AttachDelegate( name: "steeringEffectsSeatOfPantsForceCurve", valueProvider: () => DataBuffer.steeringEffectsSeatOfPantsForceCurve );
+				this.AttachDelegate( name: "steeringEffectsSeatOfPantsPedalVibrationMinFrequency", valueProvider: () => DataBuffer.steeringEffectsSeatOfPantsPedalVibrationMinFrequency );
+				this.AttachDelegate( name: "steeringEffectsSeatOfPantsPedalVibrationMaxFrequency", valueProvider: () => DataBuffer.steeringEffectsSeatOfPantsPedalVibrationMaxFrequency );
+				this.AttachDelegate( name: "steeringEffectsSeatOfPantsPedalVibrationCurve", valueProvider: () => DataBuffer.steeringEffectsSeatOfPantsPedalVibrationCurve );
 				this.AttachDelegate( name: "steeringEffectsSeatOfPantsEffect", valueProvider: () => DataBuffer.steeringEffectsSeatOfPantsEffect );
+
 				this.AttachDelegate( name: "steeringEffectsSkidSlip", valueProvider: () => DataBuffer.steeringEffectsSkidSlip );
 
 				this.AttachDelegate( name: "pedalsClutchFrequency", valueProvider: () => DataBuffer.pedalsClutchFrequency );
@@ -231,11 +389,17 @@ namespace MarvinsAIRARefactoredSimHub
 
 				this.AttachDelegate( name: "pedalsThrottleFrequency", valueProvider: () => DataBuffer.pedalsThrottleFrequency );
 				this.AttachDelegate( name: "pedalsThrottleAmplitude", valueProvider: () => DataBuffer.pedalsThrottleAmplitude );
+
+				this.AttachDelegate( name: "overlaysShowInPractice", valueProvider: () => Settings.OverlaysShowInPractice );
+				this.AttachDelegate( name: "overlaysShowInQualifying", valueProvider: () => Settings.OverlaysShowInQualifying );
+				this.AttachDelegate( name: "overlaysShowInRace", valueProvider: () => Settings.OverlaysShowInRace );
+				this.AttachDelegate( name: "overlaysShowInTestDrive", valueProvider: () => Settings.OverlaysShowInTestDrive );
 			}
 		}
 
 		public void End( PluginManager pluginManager )
 		{
+			this.SaveCommonSettings("MarvinsAIRARefactoredDataPlugin_Settings.json", Settings);
 		}
 
 		public void DataUpdate( PluginManager pluginManager, ref GameData data )
@@ -294,7 +458,15 @@ namespace MarvinsAIRARefactoredSimHub
 
 		public System.Windows.Controls.Control GetWPFSettingsControl( PluginManager pluginManager )
 		{
-			return null;
+			return new PluginControl( Settings );
 		}
+	}
+
+	public class PluginSettings
+	{
+		public bool OverlaysShowInPractice { get; set; } = true;
+		public bool OverlaysShowInQualifying { get; set; } = true;
+		public bool OverlaysShowInRace { get; set; } = true;
+		public bool OverlaysShowInTestDrive { get; set; } = true;
 	}
 }
