@@ -99,6 +99,6 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>XCOPY /Y /R "$(TargetDir)\$(TargetName)*" "%25SIMHUB_INSTALL_PATH%25"</PostBuildEvent>
-    <PostBuildEvent>XCOPY /Y /R "$(TargetDir)\$(TargetName)*" "C:\Users\marvi\OneDrive\Documents\GitHub\MarvinsAIRARefactored\SimHub\"</PostBuildEvent>
+    <PostBuildEvent>XCOPY /Y /R "$(TargetDir)\$(TargetName)*" "C:\Users\marvi\OneDrive\Documents\GitHub\MarvinsAIRARefactored\InnoSetup\SimHub\"</PostBuildEvent>
   </PropertyGroup>
 </Project>
