@@ -40,8 +40,9 @@
     <Reference Include="GameReaderCommon">
       <HintPath>C:\Program Files (x86)\SimHub\GameReaderCommon.dll</HintPath>
     </Reference>
-    <Reference Include="log4net, Version=3.0.4.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
-      <HintPath>..\MarvinsAIRARefactored\packages\log4net.3.0.4\lib\net462\log4net.dll</HintPath>
+    <Reference Include="log4net, Version=2.0.15.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\..\Program Files (x86)\SimHub\log4net.dll</HintPath>
     </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
@@ -79,7 +80,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
-    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="maira-universal.ico" />
@@ -99,5 +99,6 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>XCOPY /Y /R "$(TargetDir)\$(TargetName)*" "%25SIMHUB_INSTALL_PATH%25"</PostBuildEvent>
+    <PostBuildEvent>XCOPY /Y /R "$(TargetDir)\$(TargetName)*" "C:\Users\marvi\OneDrive\Documents\GitHub\MarvinsAIRARefactored\SimHub\"</PostBuildEvent>
   </PropertyGroup>
 </Project>
