@@ -20,17 +20,42 @@ namespace MarvinsAIRARefactoredSimHub
 		private const string MemoryMappedFileName = "Local\\MAIRARefactoredTelemetry";
 		private const int MaxStringLengthInBytes = 256;
 
-		private const int ExpectedVersion = 5;
+		private const int ExpectedVersion = 6;
 
 		[StructLayout( LayoutKind.Sequential, Pack = 4 )]
 		public unsafe struct DataBufferStruct
 		{
+			// header telemetry
+
 			public int tickCount;
+
+			// output telemetry
+
+			public float racingWheelAutoTorque;
+			public float racingWheelOutputTorque;
+			public bool racingWheelOutputTorqueIsClipping;
+			public bool racingWheelCrashProtectionIsActive;
+			public bool racingWheelCurbProtectionIsActive;
+			public bool racingWheelFadingIsActive;
+
+			public float steeringEffectsUndersteerEffect;
+			public float steeringEffectsOversteerEffect;
+			public float steeringEffectsSeatOfPantsEffect;
+			public float steeringEffectsSkidSlip;
+
+			public float pedalsClutchFrequency;
+			public float pedalsClutchAmplitude;
+
+			public float pedalsBrakeFrequency;
+			public float pedalsBrakeAmplitude;
+
+			public float pedalsThrottleFrequency;
+			public float pedalsThrottleAmplitude;
+
+			// racing wheel settings telemetry
 
 			public float racingWheelStrength;
 			public float racingWheelMaxForce;
-
-			public float racingWheelAutoTorque;
 
 			public int racingWheelAlgorithm;
 			public fixed byte racingWheelAlgorithmName[ MaxStringLengthInBytes ];
@@ -43,13 +68,7 @@ namespace MarvinsAIRARefactoredSimHub
 			public fixed byte racingWheelAlgorithmSettingNames[ 4 * MaxStringLengthInBytes ];
 			public fixed byte racingWheelAlgorithmSettingValues[ 4 * MaxStringLengthInBytes ];
 
-			public float racingWheelOutputTorque;
-			public bool racingWheelOutputTorqueIsClipping;
-
-			public bool racingWheelCrashProtectionIsActive;
-			public bool racingWheelCurbProtectionIsActive;
-
-			public bool racingWheelFadingIsActive;
+			// steering effects settings telemetry
 
 			public fixed byte steeringEffectsCalibrationFileName[ MaxStringLengthInBytes ];
 
@@ -66,7 +85,6 @@ namespace MarvinsAIRARefactoredSimHub
 			public float steeringEffectsUndersteerPedalVibrationMinFrequency;
 			public float steeringEffectsUndersteerPedalVibrationMaxFrequency;
 			public float steeringEffectsUndersteerPedalVibrationCurve;
-			public float steeringEffectsUndersteerEffect;
 
 			public float steeringEffectsOversteerMinThreshold;
 			public float steeringEffectsOversteerMaxThreshold;
@@ -81,7 +99,6 @@ namespace MarvinsAIRARefactoredSimHub
 			public float steeringEffectsOversteerPedalVibrationMinFrequency;
 			public float steeringEffectsOversteerPedalVibrationMaxFrequency;
 			public float steeringEffectsOversteerPedalVibrationCurve;
-			public float steeringEffectsOversteerEffect;
 
 			public float steeringEffectsSeatOfPantsMinThreshold;
 			public float steeringEffectsSeatOfPantsMaxThreshold;
@@ -97,18 +114,8 @@ namespace MarvinsAIRARefactoredSimHub
 			public float steeringEffectsSeatOfPantsPedalVibrationMinFrequency;
 			public float steeringEffectsSeatOfPantsPedalVibrationMaxFrequency;
 			public float steeringEffectsSeatOfPantsPedalVibrationCurve;
-			public float steeringEffectsSeatOfPantsEffect;
 
-			public float steeringEffectsSkidSlip;
-
-			public float pedalsClutchFrequency;
-			public float pedalsClutchAmplitude;
-
-			public float pedalsBrakeFrequency;
-			public float pedalsBrakeAmplitude;
-
-			public float pedalsThrottleFrequency;
-			public float pedalsThrottleAmplitude;
+			// string getters
 
 			public string GetRacingWheelAlgorithmName()
 			{
@@ -294,12 +301,37 @@ namespace MarvinsAIRARefactoredSimHub
 				this.AttachDelegate( name: "faulted", valueProvider: () => faulted );
 				this.AttachDelegate( name: "connected", valueProvider: () => connected );
 
+				// header telemetry
+
 				this.AttachDelegate( name: "tickCount", valueProvider: () => DataBuffer.tickCount );
+
+				// output telemetry
+
+				this.AttachDelegate( name: "racingWheelAutoTorque", valueProvider: () => DataBuffer.racingWheelAutoTorque );
+				this.AttachDelegate( name: "racingWheelOutputTorque", valueProvider: () => DataBuffer.racingWheelOutputTorque );
+				this.AttachDelegate( name: "racingWheelOutputTorqueIsClipping", valueProvider: () => DataBuffer.racingWheelOutputTorqueIsClipping );
+				this.AttachDelegate( name: "racingWheelCrashProtectionIsActive", valueProvider: () => DataBuffer.racingWheelCrashProtectionIsActive );
+				this.AttachDelegate( name: "racingWheelCurbProtectionIsActive", valueProvider: () => DataBuffer.racingWheelCurbProtectionIsActive );
+				this.AttachDelegate( name: "racingWheelFadingIsActive", valueProvider: () => DataBuffer.racingWheelFadingIsActive );
+
+				this.AttachDelegate( name: "steeringEffectsUndersteerEffect", valueProvider: () => DataBuffer.steeringEffectsUndersteerEffect );
+				this.AttachDelegate( name: "steeringEffectsOversteerEffect", valueProvider: () => DataBuffer.steeringEffectsOversteerEffect );
+				this.AttachDelegate( name: "steeringEffectsSeatOfPantsEffect", valueProvider: () => DataBuffer.steeringEffectsSeatOfPantsEffect );
+				this.AttachDelegate( name: "steeringEffectsSkidSlip", valueProvider: () => DataBuffer.steeringEffectsSkidSlip );
+
+				this.AttachDelegate( name: "pedalsClutchFrequency", valueProvider: () => DataBuffer.pedalsClutchFrequency );
+				this.AttachDelegate( name: "pedalsClutchAmplitude", valueProvider: () => DataBuffer.pedalsClutchAmplitude );
+
+				this.AttachDelegate( name: "pedalsBrakeFrequency", valueProvider: () => DataBuffer.pedalsBrakeFrequency );
+				this.AttachDelegate( name: "pedalsBrakeAmplitude", valueProvider: () => DataBuffer.pedalsBrakeAmplitude );
+
+				this.AttachDelegate( name: "pedalsThrottleFrequency", valueProvider: () => DataBuffer.pedalsThrottleFrequency );
+				this.AttachDelegate( name: "pedalsThrottleAmplitude", valueProvider: () => DataBuffer.pedalsThrottleAmplitude );
+
+				// racing wheel settings telemetry
 
 				this.AttachDelegate( name: "racingWheelStrength", valueProvider: () => DataBuffer.racingWheelStrength );
 				this.AttachDelegate( name: "racingWheelMaxForce", valueProvider: () => DataBuffer.racingWheelMaxForce );
-
-				this.AttachDelegate( name: "racingWheelAutoTorque", valueProvider: () => DataBuffer.racingWheelAutoTorque );
 
 				this.AttachDelegate( name: "racingWheelAlgorithm", valueProvider: () => DataBuffer.racingWheelAlgorithm );
 				this.AttachDelegate( name: "racingWheelAlgorithmName", valueProvider: () => DataBuffer.GetRacingWheelAlgorithmName() );
@@ -323,13 +355,7 @@ namespace MarvinsAIRARefactoredSimHub
 				this.AttachDelegate( name: "racingWheelAlgorithmSettingValue2", valueProvider: () => DataBuffer.GetRacingWheelAlgorithmSettingValue( 2 ) );
 				this.AttachDelegate( name: "racingWheelAlgorithmSettingValue3", valueProvider: () => DataBuffer.GetRacingWheelAlgorithmSettingValue( 3 ) );
 
-				this.AttachDelegate( name: "racingWheelOutputTorque", valueProvider: () => DataBuffer.racingWheelOutputTorque );
-				this.AttachDelegate( name: "racingWheelOutputTorqueIsClipping", valueProvider: () => DataBuffer.racingWheelOutputTorqueIsClipping );
-
-				this.AttachDelegate( name: "racingWheelCrashProtectionIsActive", valueProvider: () => DataBuffer.racingWheelCrashProtectionIsActive );
-				this.AttachDelegate( name: "racingWheelCurbProtectionIsActive", valueProvider: () => DataBuffer.racingWheelCurbProtectionIsActive );
-
-				this.AttachDelegate( name: "racingWheelFadingIsActive", valueProvider: () => DataBuffer.racingWheelFadingIsActive );
+				// steering effects settings telemetry
 
 				this.AttachDelegate( name: "steeringEffectsCalibrationFileName", valueProvider: () => DataBuffer.GetSteeringEffectsCalibrationFileName() );
 
@@ -346,7 +372,6 @@ namespace MarvinsAIRARefactoredSimHub
 				this.AttachDelegate( name: "steeringEffectsUndersteerPedalVibrationMinFrequency", valueProvider: () => DataBuffer.steeringEffectsUndersteerPedalVibrationMinFrequency );
 				this.AttachDelegate( name: "steeringEffectsUndersteerPedalVibrationMaxFrequency", valueProvider: () => DataBuffer.steeringEffectsUndersteerPedalVibrationMaxFrequency );
 				this.AttachDelegate( name: "steeringEffectsUndersteerPedalVibrationCurve", valueProvider: () => DataBuffer.steeringEffectsUndersteerPedalVibrationCurve );
-				this.AttachDelegate( name: "steeringEffectsUndersteerEffect", valueProvider: () => DataBuffer.steeringEffectsUndersteerEffect );
 
 				this.AttachDelegate( name: "steeringEffectsOversteerMinThreshold", valueProvider: () => DataBuffer.steeringEffectsOversteerMinThreshold );
 				this.AttachDelegate( name: "steeringEffectsOversteerMaxThreshold", valueProvider: () => DataBuffer.steeringEffectsOversteerMaxThreshold );
@@ -361,7 +386,6 @@ namespace MarvinsAIRARefactoredSimHub
 				this.AttachDelegate( name: "steeringEffectsOversteerPedalVibrationMinFrequency", valueProvider: () => DataBuffer.steeringEffectsOversteerPedalVibrationMinFrequency );
 				this.AttachDelegate( name: "steeringEffectsOversteerPedalVibrationMaxFrequency", valueProvider: () => DataBuffer.steeringEffectsOversteerPedalVibrationMaxFrequency );
 				this.AttachDelegate( name: "steeringEffectsOversteerPedalVibrationCurve", valueProvider: () => DataBuffer.steeringEffectsOversteerPedalVibrationCurve );
-				this.AttachDelegate( name: "steeringEffectsOversteerEffect", valueProvider: () => DataBuffer.steeringEffectsOversteerEffect );
 
 				this.AttachDelegate( name: "steeringEffectsSeatOfPantsMinThreshold", valueProvider: () => DataBuffer.steeringEffectsSeatOfPantsMinThreshold );
 				this.AttachDelegate( name: "steeringEffectsSeatOfPantsMaxThreshold", valueProvider: () => DataBuffer.steeringEffectsSeatOfPantsMaxThreshold );
@@ -377,18 +401,8 @@ namespace MarvinsAIRARefactoredSimHub
 				this.AttachDelegate( name: "steeringEffectsSeatOfPantsPedalVibrationMinFrequency", valueProvider: () => DataBuffer.steeringEffectsSeatOfPantsPedalVibrationMinFrequency );
 				this.AttachDelegate( name: "steeringEffectsSeatOfPantsPedalVibrationMaxFrequency", valueProvider: () => DataBuffer.steeringEffectsSeatOfPantsPedalVibrationMaxFrequency );
 				this.AttachDelegate( name: "steeringEffectsSeatOfPantsPedalVibrationCurve", valueProvider: () => DataBuffer.steeringEffectsSeatOfPantsPedalVibrationCurve );
-				this.AttachDelegate( name: "steeringEffectsSeatOfPantsEffect", valueProvider: () => DataBuffer.steeringEffectsSeatOfPantsEffect );
 
-				this.AttachDelegate( name: "steeringEffectsSkidSlip", valueProvider: () => DataBuffer.steeringEffectsSkidSlip );
-
-				this.AttachDelegate( name: "pedalsClutchFrequency", valueProvider: () => DataBuffer.pedalsClutchFrequency );
-				this.AttachDelegate( name: "pedalsClutchAmplitude", valueProvider: () => DataBuffer.pedalsClutchAmplitude );
-
-				this.AttachDelegate( name: "pedalsBrakeFrequency", valueProvider: () => DataBuffer.pedalsBrakeFrequency );
-				this.AttachDelegate( name: "pedalsBrakeAmplitude", valueProvider: () => DataBuffer.pedalsBrakeAmplitude );
-
-				this.AttachDelegate( name: "pedalsThrottleFrequency", valueProvider: () => DataBuffer.pedalsThrottleFrequency );
-				this.AttachDelegate( name: "pedalsThrottleAmplitude", valueProvider: () => DataBuffer.pedalsThrottleAmplitude );
+				// plugin settings
 
 				this.AttachDelegate( name: "overlaysShowInPractice", valueProvider: () => Settings.OverlaysShowInPractice );
 				this.AttachDelegate( name: "overlaysShowInQualifying", valueProvider: () => Settings.OverlaysShowInQualifying );
