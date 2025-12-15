@@ -4,7 +4,9 @@ namespace MarvinsAIRARefactoredSimHub
 {
     public partial class PluginControl : UserControl
     {
-        public PluginControl(PluginSettings settings)
+        public MarvinsAIRARefactoredDataPlugin Plugin { get; }
+
+        public PluginControl( MarvinsAIRARefactoredDataPlugin pluginInstance, PluginSettings settings )
         {
             InitializeComponent();
             var _settings = settings;
@@ -25,6 +27,9 @@ namespace MarvinsAIRARefactoredSimHub
 
             overlaysShowInTestDriveCheckbox.Checked += (s, e) => { _settings.OverlaysShowInTestDrive = true; };
             overlaysShowInTestDriveCheckbox.Unchecked += (s, e) => { _settings.OverlaysShowInTestDrive = false; };
+
+            Plugin = pluginInstance;
+            DataContext = Plugin;
         }
     }
 }
