@@ -1,5 +1,6 @@
 ﻿
 using System;
+using System.ComponentModel;
 using System.IO;
 using System.IO.MemoryMappedFiles;
 using System.Runtime.InteropServices;
@@ -15,12 +16,30 @@ namespace MarvinsAIRARefactoredSimHub
 	[PluginName( "MAIRA Refactored Data Plugin" )]
 	[PluginAuthor( "Marvin Herbold" )]
 	[PluginDescription( "Marvin's Awesome iRacing App Data Plugin" )]
-	public class MarvinsAIRARefactoredDataPlugin : IPlugin, IDataPlugin, IWPFSettingsV2
+	public class MarvinsAIRARefactoredDataPlugin : IPlugin, IDataPlugin, IWPFSettingsV2, INotifyPropertyChanged
 	{
 		private const string MemoryMappedFileName = "Local\\MAIRARefactoredTelemetry";
 		private const int MaxStringLengthInBytes = 256;
+		private const int ExpectedVersion = 7;
 
-		private const int ExpectedVersion = 6;
+		public int PluginPropertiesVersion => ExpectedVersion;
+		
+		private int _mairaVersion;
+
+		public int MairaPropertiesVersion
+		{
+			get => _mairaVersion;
+
+			private set
+			{
+				if ( _mairaVersion != value )
+				{
+					_mairaVersion = value;
+					PropertyChanged?.Invoke(this, new PropertyChangedEventArgs( nameof( MairaPropertiesVersion ) ) );
+				}
+			}
+		}
+
 
 		[StructLayout( LayoutKind.Sequential, Pack = 4 )]
 		public unsafe struct DataBufferStruct
@@ -64,9 +83,9 @@ namespace MarvinsAIRARefactoredSimHub
 			public fixed byte racingWheelAlgorithmSoftLimiterName[ MaxStringLengthInBytes ];
 			public fixed byte racingWheelAlgorithmSoftLimiterValue[ MaxStringLengthInBytes ];
 
-			public fixed float racingWheelAlgorithmSettings[ 4 ];
-			public fixed byte racingWheelAlgorithmSettingNames[ 4 * MaxStringLengthInBytes ];
-			public fixed byte racingWheelAlgorithmSettingValues[ 4 * MaxStringLengthInBytes ];
+			public fixed float racingWheelAlgorithmSettings[ 7 ];
+			public fixed byte racingWheelAlgorithmSettingNames[ 7 * MaxStringLengthInBytes ];
+			public fixed byte racingWheelAlgorithmSettingValues[ 7 * MaxStringLengthInBytes ];
 
 			// steering effects settings telemetry
 
@@ -143,7 +162,7 @@ namespace MarvinsAIRARefactoredSimHub
 
 			public string GetRacingWheelAlgorithmSettingName( int index )
 			{
-				if ( index < 0 || index >= 5 ) return string.Empty;
+				if ( index < 0 || index >= 7 ) return string.Empty;
 
 				fixed ( byte* bytePtr = racingWheelAlgorithmSettingNames )
 				{
@@ -153,7 +172,7 @@ namespace MarvinsAIRARefactoredSimHub
 
 			public string GetRacingWheelAlgorithmSettingValue( int index )
 			{
-				if ( index < 0 || index >= 5 ) return string.Empty;
+				if ( index < 0 || index >= 7 ) return string.Empty;
 
 				fixed ( byte* bytePtr = racingWheelAlgorithmSettingValues )
 				{
@@ -281,6 +300,22 @@ namespace MarvinsAIRARefactoredSimHub
 		private bool faulted = false;
 		private bool connected = false;
 
+		public string MairaStatus => faulted ? "FAULT" : ( connected ? "MAIRA Connected" : "MAIRA Not Connected" );
+
+		private bool MairaConnected
+		{
+			get => connected;
+
+			set
+			{
+				if ( connected != value )
+				{
+					connected = value;
+					PropertyChanged?.Invoke( this, new PropertyChangedEventArgs( nameof( MairaStatus ) ) );
+				}
+			}
+		}
+
 		private int nextMemoryMappedFileAttempt = 0;
 		private int nextConnectedCheck = 0;
 
@@ -344,16 +379,25 @@ namespace MarvinsAIRARefactoredSimHub
 				this.AttachDelegate( name: "racingWheelAlgorithmSetting1", valueProvider: () => DataBuffer.racingWheelAlgorithmSettings[ 1 ] );
 				this.AttachDelegate( name: "racingWheelAlgorithmSetting2", valueProvider: () => DataBuffer.racingWheelAlgorithmSettings[ 2 ] );
 				this.AttachDelegate( name: "racingWheelAlgorithmSetting3", valueProvider: () => DataBuffer.racingWheelAlgorithmSettings[ 3 ] );
+				this.AttachDelegate( name: "racingWheelAlgorithmSetting4", valueProvider: () => DataBuffer.racingWheelAlgorithmSettings[ 4 ] );
+				this.AttachDelegate( name: "racingWheelAlgorithmSetting5", valueProvider: () => DataBuffer.racingWheelAlgorithmSettings[ 5 ] );
+				this.AttachDelegate( name: "racingWheelAlgorithmSetting6", valueProvider: () => DataBuffer.racingWheelAlgorithmSettings[ 6 ] );
 
 				this.AttachDelegate( name: "racingWheelAlgorithmSettingName0", valueProvider: () => DataBuffer.GetRacingWheelAlgorithmSettingName( 0 ) );
 				this.AttachDelegate( name: "racingWheelAlgorithmSettingName1", valueProvider: () => DataBuffer.GetRacingWheelAlgorithmSettingName( 1 ) );
 				this.AttachDelegate( name: "racingWheelAlgorithmSettingName2", valueProvider: () => DataBuffer.GetRacingWheelAlgorithmSettingName( 2 ) );
 				this.AttachDelegate( name: "racingWheelAlgorithmSettingName3", valueProvider: () => DataBuffer.GetRacingWheelAlgorithmSettingName( 3 ) );
+				this.AttachDelegate( name: "racingWheelAlgorithmSettingName4", valueProvider: () => DataBuffer.GetRacingWheelAlgorithmSettingName( 4 ) );
+				this.AttachDelegate( name: "racingWheelAlgorithmSettingName5", valueProvider: () => DataBuffer.GetRacingWheelAlgorithmSettingName( 5 ) );
+				this.AttachDelegate( name: "racingWheelAlgorithmSettingName6", valueProvider: () => DataBuffer.GetRacingWheelAlgorithmSettingName( 6 ) );
 
 				this.AttachDelegate( name: "racingWheelAlgorithmSettingValue0", valueProvider: () => DataBuffer.GetRacingWheelAlgorithmSettingValue( 0 ) );
 				this.AttachDelegate( name: "racingWheelAlgorithmSettingValue1", valueProvider: () => DataBuffer.GetRacingWheelAlgorithmSettingValue( 1 ) );
 				this.AttachDelegate( name: "racingWheelAlgorithmSettingValue2", valueProvider: () => DataBuffer.GetRacingWheelAlgorithmSettingValue( 2 ) );
 				this.AttachDelegate( name: "racingWheelAlgorithmSettingValue3", valueProvider: () => DataBuffer.GetRacingWheelAlgorithmSettingValue( 3 ) );
+				this.AttachDelegate( name: "racingWheelAlgorithmSettingValue4", valueProvider: () => DataBuffer.GetRacingWheelAlgorithmSettingValue( 4 ) );
+				this.AttachDelegate( name: "racingWheelAlgorithmSettingValue5", valueProvider: () => DataBuffer.GetRacingWheelAlgorithmSettingValue( 5 ) );
+				this.AttachDelegate( name: "racingWheelAlgorithmSettingValue6", valueProvider: () => DataBuffer.GetRacingWheelAlgorithmSettingValue( 6 ) );
 
 				// steering effects settings telemetry
 
@@ -449,6 +493,8 @@ namespace MarvinsAIRARefactoredSimHub
 
 					memoryMappedFileViewAccessor?.Read( 0, out this.data );
 
+					MairaPropertiesVersion = this.data.version;
+
 					if ( this.data.version != ExpectedVersion )
 					{
 						SimHub.Logging.Current.Info( $"MAIRA Refactored data plugin detected an invalid data version {this.data.version}!" );
@@ -458,7 +504,7 @@ namespace MarvinsAIRARefactoredSimHub
 
 					if ( Environment.TickCount >= nextConnectedCheck )
 					{
-						connected = DataBuffer.tickCount != lastTickCount;
+						MairaConnected = DataBuffer.tickCount != lastTickCount;
 						lastTickCount = DataBuffer.tickCount;
 						nextConnectedCheck = Environment.TickCount + 1000;
 					}
@@ -472,8 +518,10 @@ namespace MarvinsAIRARefactoredSimHub
 
 		public System.Windows.Controls.Control GetWPFSettingsControl( PluginManager pluginManager )
 		{
-			return new PluginControl( Settings );
+			return new PluginControl( this, Settings );
 		}
+
+		public event PropertyChangedEventHandler PropertyChanged;
 	}
 
 	public class PluginSettings
