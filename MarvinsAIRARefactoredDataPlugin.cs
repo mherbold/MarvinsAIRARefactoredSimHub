@@ -12,7 +12,6 @@ using SimHub.Plugins;
 
 namespace MarvinsAIRARefactoredSimHub
 {
-
 	[PluginName( "MAIRA Refactored Data Plugin" )]
 	[PluginAuthor( "Marvin Herbold" )]
 	[PluginDescription( "Marvin's Awesome iRacing App Data Plugin" )]
@@ -39,7 +38,6 @@ namespace MarvinsAIRARefactoredSimHub
 				}
 			}
 		}
-
 
 		[StructLayout( LayoutKind.Sequential, Pack = 4 )]
 		public unsafe struct DataBufferStruct
