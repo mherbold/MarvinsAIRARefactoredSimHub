@@ -34,8 +34,24 @@ namespace MarvinsAIRARefactoredSimHub
 				if ( _mairaVersion != value )
 				{
 					_mairaVersion = value;
-					PropertyChanged?.Invoke(this, new PropertyChangedEventArgs( nameof( MairaPropertiesVersion ) ) );
-				}
+                    PropertyChanged?.Invoke( this, new PropertyChangedEventArgs( nameof( MairaPropertiesVersion ) ) );
+                }
+			}
+		}
+
+		private bool _mairaVersionError;
+
+		public bool MairaVersionError
+		{
+			get => _mairaVersionError;
+
+			private set
+			{
+				if ( _mairaVersionError != value )
+				{
+					_mairaVersionError = value;
+                    PropertyChanged?.Invoke( this, new PropertyChangedEventArgs( nameof( MairaStatus ) ) );
+                }
 			}
 		}
 
@@ -295,24 +311,80 @@ namespace MarvinsAIRARefactoredSimHub
 		private MemoryMappedFile memoryMappedFile = null;
 		private MemoryMappedViewAccessor memoryMappedFileViewAccessor = null;
 
-		private bool faulted = false;
-		private bool connected = false;
-
-		public string MairaStatus => faulted ? "FAULT" : ( connected ? "MAIRA Connected" : "MAIRA Not Connected" );
-
+        private bool _connected = false;
+        
 		private bool MairaConnected
 		{
-			get => connected;
+			get => _connected;
 
 			set
 			{
-				if ( connected != value )
+				if ( _connected != value )
 				{
-					connected = value;
-					PropertyChanged?.Invoke( this, new PropertyChangedEventArgs( nameof( MairaStatus ) ) );
-				}
+					_connected = value;
+                    PropertyChanged?.Invoke( this, new PropertyChangedEventArgs( nameof( MairaStatus ) ) );
+                }
 			}
 		}
+
+        private bool _faulted = false;
+        
+		private bool MairaFaulted
+		{
+			get => _faulted;
+
+			set
+			{
+				if ( _faulted != value )
+				{
+					_faulted = value;
+                    PropertyChanged?.Invoke( this, new PropertyChangedEventArgs( nameof( MairaStatus ) ) );
+                }
+            }
+		}
+
+        private bool _mairaReadError = false;
+        
+		private bool MairaReadError
+		{
+			get => _mairaReadError;
+
+			set
+			{
+				if ( _mairaReadError != value )
+				{
+					_mairaReadError = value;
+                    PropertyChanged?.Invoke( this, new PropertyChangedEventArgs( nameof( MairaStatus ) ) );
+                }
+            }
+		}
+
+        public string MairaStatus
+        {
+            get
+            {
+                if ( MairaVersionError && ( MairaPropertiesVersion != 0 ) )
+                {
+                    return "Unexpected Data Version";
+                }
+                else if ( MairaFaulted )
+                {
+                    return "FAULT";
+                }
+                else if ( MairaReadError )
+                {
+                    return "MAIRA Read Error";
+                }
+                else if ( MairaConnected )
+                {
+                    return "MAIRA Connected";
+                }
+                else
+                {
+                    return "MAIRA Not Connected";
+                }
+            }
+        }
 
 		private int nextMemoryMappedFileAttempt = 0;
 		private int nextConnectedCheck = 0;
@@ -331,8 +403,8 @@ namespace MarvinsAIRARefactoredSimHub
 			{
 				this.AttachDelegate( name: "version", valueProvider: () => $"{ExpectedVersion},{this.data.version}" );
 
-				this.AttachDelegate( name: "faulted", valueProvider: () => faulted );
-				this.AttachDelegate( name: "connected", valueProvider: () => connected );
+				this.AttachDelegate( name: "faulted", valueProvider: () => MairaFaulted );
+				this.AttachDelegate( name: "connected", valueProvider: () => MairaConnected );
 
 				// header telemetry
 
@@ -460,11 +532,6 @@ namespace MarvinsAIRARefactoredSimHub
 
 		public void DataUpdate( PluginManager pluginManager, ref GameData data )
 		{
-			if ( faulted )
-			{
-				return;
-			}
-
 			try
 			{
 				if ( memoryMappedFile == null )
@@ -487,30 +554,50 @@ namespace MarvinsAIRARefactoredSimHub
 					if ( memoryMappedFileViewAccessor == null )
 					{
 						memoryMappedFileViewAccessor = memoryMappedFile.CreateViewAccessor();
-					}
+                    }
 
-					memoryMappedFileViewAccessor?.Read( 0, out this.data );
-
-					MairaPropertiesVersion = this.data.version;
-
-					if ( this.data.version != ExpectedVersion )
+					try
 					{
-						SimHub.Logging.Current.Info( $"MAIRA Refactored data plugin detected an invalid data version {this.data.version}!" );
-
-						throw new Exception( $"Invalid data version {this.data.version}" );
+						memoryMappedFileViewAccessor?.Read(0, out this.data);
+                        MairaReadError = false;
+					}
+					catch
+					{
+                        MairaReadError = true;
 					}
 
 					if ( Environment.TickCount >= nextConnectedCheck )
 					{
 						MairaConnected = DataBuffer.tickCount != lastTickCount;
-						lastTickCount = DataBuffer.tickCount;
+
+						if ( MairaConnected )
+						{
+							MairaPropertiesVersion = this.data.version;
+
+							if ( MairaPropertiesVersion != ExpectedVersion )
+							{
+                                MairaVersionError = true;
+
+                                SimHub.Logging.Current.Info($"MAIRA Refactored data plugin detected an invalid data version {MairaPropertiesVersion}!");
+							}
+							else
+							{
+								MairaVersionError = false;
+							}
+						}
+						else
+						{
+							MairaPropertiesVersion = 0;
+						}
+
+                        lastTickCount = DataBuffer.tickCount;
 						nextConnectedCheck = Environment.TickCount + 1000;
 					}
 				}
 			}
 			catch
 			{
-				faulted = true;
+                MairaFaulted = true;
 			}
 		}
 
