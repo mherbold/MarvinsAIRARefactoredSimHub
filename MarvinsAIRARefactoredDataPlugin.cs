@@ -148,6 +148,11 @@ namespace MarvinsAIRARefactoredSimHub
 			public float steeringEffectsSeatOfPantsPedalVibrationMaxFrequency;
 			public float steeringEffectsSeatOfPantsPedalVibrationCurve;
 
+			public bool soundsWheelLockIsPlaying;
+			public float soundsWheelLockVolume;
+			public bool soundsWheelSpinIsPlaying;
+			public float soundsWheelSpinVolume;
+
 			// string getters
 
 			public string GetRacingWheelAlgorithmName()
@@ -515,6 +520,11 @@ namespace MarvinsAIRARefactoredSimHub
 				this.AttachDelegate( name: "steeringEffectsSeatOfPantsPedalVibrationMinFrequency", valueProvider: () => DataBuffer.steeringEffectsSeatOfPantsPedalVibrationMinFrequency );
 				this.AttachDelegate( name: "steeringEffectsSeatOfPantsPedalVibrationMaxFrequency", valueProvider: () => DataBuffer.steeringEffectsSeatOfPantsPedalVibrationMaxFrequency );
 				this.AttachDelegate( name: "steeringEffectsSeatOfPantsPedalVibrationCurve", valueProvider: () => DataBuffer.steeringEffectsSeatOfPantsPedalVibrationCurve );
+
+				this.AttachDelegate( name: "soundsWheelLockIsPlaying", valueProvider: () => DataBuffer.soundsWheelLockIsPlaying );
+				this.AttachDelegate( name: "soundsWheelLockVolume", valueProvider: () => DataBuffer.soundsWheelLockVolume );
+				this.AttachDelegate( name: "soundsWheelSpinIsPlaying", valueProvider: () => DataBuffer.soundsWheelSpinIsPlaying );
+				this.AttachDelegate( name: "soundsWheelSpinVolume", valueProvider: () => DataBuffer.soundsWheelSpinVolume );
 
 				// plugin settings
 
