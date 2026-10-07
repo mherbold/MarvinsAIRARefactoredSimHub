@@ -19,7 +19,9 @@ namespace MarvinsAIRARefactoredSimHub
 	{
 		private const string MemoryMappedFileName = "Local\\MAIRARefactoredTelemetry";
 		private const int MaxStringLengthInBytes = 256;
-		private const int ExpectedVersion = 7;
+		private const int MaxGraphNodes = 20;
+		private const int MaxGraphNodeParameters = 6;
+		private const int ExpectedVersion = 9;
 
 		public int PluginPropertiesVersion => ExpectedVersion;
 		
@@ -90,45 +92,18 @@ namespace MarvinsAIRARefactoredSimHub
 			public float racingWheelStrength;
 			public float racingWheelMaxForce;
 
-			public int racingWheelAlgorithm;
-			public fixed byte racingWheelAlgorithmName[ MaxStringLengthInBytes ];
-
-			public bool racingWheelAlgorithmSoftLimiterIsEnabled;
-			public fixed byte racingWheelAlgorithmSoftLimiterName[ MaxStringLengthInBytes ];
-			public fixed byte racingWheelAlgorithmSoftLimiterValue[ MaxStringLengthInBytes ];
-
-			public fixed float racingWheelAlgorithmSettings[ 7 ];
-			public fixed byte racingWheelAlgorithmSettingNames[ 7 * MaxStringLengthInBytes ];
-			public fixed byte racingWheelAlgorithmSettingValues[ 7 * MaxStringLengthInBytes ];
-
 			// steering effects settings telemetry
 
 			public fixed byte steeringEffectsCalibrationFileName[ MaxStringLengthInBytes ];
 
 			public float steeringEffectsUndersteerMinThreshold;
 			public float steeringEffectsUndersteerMaxThreshold;
-			public fixed byte steeringEffectsUndersteerVibrationPattern[ MaxStringLengthInBytes ];
-			public float steeringEffectsUndersteerVibrationStrength;
-			public float steeringEffectsUndersteerVibrationMinFrequency;
-			public float steeringEffectsUndersteerVibrationMaxFrequency;
-			public float steeringEffectsUndersteerVibrationCurve;
-			public fixed byte steeringEffectsUndersteerForceDirection[ MaxStringLengthInBytes ];
-			public float steeringEffectsUndersteerForceStrength;
-			public float steeringEffectsUndersteerForceCurve;
 			public float steeringEffectsUndersteerPedalVibrationMinFrequency;
 			public float steeringEffectsUndersteerPedalVibrationMaxFrequency;
 			public float steeringEffectsUndersteerPedalVibrationCurve;
 
 			public float steeringEffectsOversteerMinThreshold;
 			public float steeringEffectsOversteerMaxThreshold;
-			public fixed byte steeringEffectsOversteerVibrationPattern[ MaxStringLengthInBytes ];
-			public float steeringEffectsOversteerVibrationStrength;
-			public float steeringEffectsOversteerVibrationMinFrequency;
-			public float steeringEffectsOversteerVibrationMaxFrequency;
-			public float steeringEffectsOversteerVibrationCurve;
-			public fixed byte steeringEffectsOversteerForceDirection[ MaxStringLengthInBytes ];
-			public float steeringEffectsOversteerForceStrength;
-			public float steeringEffectsOversteerForceCurve;
 			public float steeringEffectsOversteerPedalVibrationMinFrequency;
 			public float steeringEffectsOversteerPedalVibrationMaxFrequency;
 			public float steeringEffectsOversteerPedalVibrationCurve;
@@ -136,14 +111,6 @@ namespace MarvinsAIRARefactoredSimHub
 			public float steeringEffectsSeatOfPantsMinThreshold;
 			public float steeringEffectsSeatOfPantsMaxThreshold;
 			public fixed byte steeringEffectsSeatOfPantsAlgorithm[ MaxStringLengthInBytes ];
-			public fixed byte steeringEffectsSeatOfPantsVibrationPattern[ MaxStringLengthInBytes ];
-			public float steeringEffectsSeatOfPantsVibrationStrength;
-			public float steeringEffectsSeatOfPantsVibrationMinFrequency;
-			public float steeringEffectsSeatOfPantsVibrationMaxFrequency;
-			public float steeringEffectsSeatOfPantsVibrationCurve;
-			public fixed byte steeringEffectsSeatOfPantsForceDirection[ MaxStringLengthInBytes ];
-			public float steeringEffectsSeatOfPantsForceStrength;
-			public float steeringEffectsSeatOfPantsForceCurve;
 			public float steeringEffectsSeatOfPantsPedalVibrationMinFrequency;
 			public float steeringEffectsSeatOfPantsPedalVibrationMaxFrequency;
 			public float steeringEffectsSeatOfPantsPedalVibrationCurve;
@@ -153,87 +120,34 @@ namespace MarvinsAIRARefactoredSimHub
 			public bool soundsWheelSpinIsPlaying;
 			public float soundsWheelSpinVolume;
 
+			// ffb graph settings telemetry (pinned settings of the active graph, grouped by node)
+			// node n is at index n; parameter p of node n is at index ( n * MaxGraphNodeParameters + p )
+
+			public fixed byte graphName[ MaxStringLengthInBytes ];
+
+			public int graphNodeCount;
+			public fixed int graphNodeParameterCounts[ MaxGraphNodes ];
+
+			public fixed byte graphNodeNames[ MaxGraphNodes * MaxStringLengthInBytes ];
+			public fixed byte graphNodeTypes[ MaxGraphNodes * MaxStringLengthInBytes ];
+			public fixed byte graphNodeParameterNames[ MaxGraphNodes * MaxGraphNodeParameters * MaxStringLengthInBytes ];
+			public fixed byte graphNodeParameterValues[ MaxGraphNodes * MaxGraphNodeParameters * MaxStringLengthInBytes ];
+			public fixed byte graphNodeParameterTexts[ MaxGraphNodes * MaxGraphNodeParameters * MaxStringLengthInBytes ];
+
+			// graph node count getters
+
+			public int GetGraphNodeParameterCount( int nodeIndex )
+			{
+				if ( nodeIndex < 0 || nodeIndex >= MaxGraphNodes ) return 0;
+
+				return graphNodeParameterCounts[ nodeIndex ];
+			}
+
 			// string getters
-
-			public string GetRacingWheelAlgorithmName()
-			{
-				fixed ( byte* bytePtr = racingWheelAlgorithmName )
-				{
-					return ReadString( bytePtr, 0, MaxStringLengthInBytes );
-				}
-			}
-
-			public string GetRacingWheelAlgorithmSoftLimiterName()
-			{
-				fixed ( byte* bytePtr = racingWheelAlgorithmSoftLimiterName )
-				{
-					return ReadString( bytePtr, 0, MaxStringLengthInBytes );
-				}
-			}
-
-			public string GetRacingWheelAlgorithmSoftLimiterValue()
-			{
-				fixed ( byte* bytePtr = racingWheelAlgorithmSoftLimiterValue )
-				{
-					return ReadString( bytePtr, 0, MaxStringLengthInBytes );
-				}
-			}
-
-			public string GetRacingWheelAlgorithmSettingName( int index )
-			{
-				if ( index < 0 || index >= 7 ) return string.Empty;
-
-				fixed ( byte* bytePtr = racingWheelAlgorithmSettingNames )
-				{
-					return ReadString( bytePtr, index, MaxStringLengthInBytes );
-				}
-			}
-
-			public string GetRacingWheelAlgorithmSettingValue( int index )
-			{
-				if ( index < 0 || index >= 7 ) return string.Empty;
-
-				fixed ( byte* bytePtr = racingWheelAlgorithmSettingValues )
-				{
-					return ReadString( bytePtr, index, MaxStringLengthInBytes );
-				}
-			}
 
 			public string GetSteeringEffectsCalibrationFileName()
 			{
 				fixed ( byte* bytePtr = steeringEffectsCalibrationFileName )
-				{
-					return ReadString( bytePtr, 0, MaxStringLengthInBytes );
-				}
-			}
-
-			public string GetSteeringEffectsUndersteerVibrationPattern()
-			{
-				fixed ( byte* bytePtr = steeringEffectsUndersteerVibrationPattern )
-				{
-					return ReadString( bytePtr, 0, MaxStringLengthInBytes );
-				}
-			}
-
-			public string GetSteeringEffectsUndersteerForceDirection()
-			{
-				fixed ( byte* bytePtr = steeringEffectsUndersteerForceDirection )
-				{
-					return ReadString( bytePtr, 0, MaxStringLengthInBytes );
-				}
-			}
-
-			public string GetSteeringEffectsOversteerVibrationPattern()
-			{
-				fixed ( byte* bytePtr = steeringEffectsOversteerVibrationPattern )
-				{
-					return ReadString( bytePtr, 0, MaxStringLengthInBytes );
-				}
-			}
-
-			public string GetSteeringEffectsOversteerForceDirection()
-			{
-				fixed ( byte* bytePtr = steeringEffectsOversteerForceDirection )
 				{
 					return ReadString( bytePtr, 0, MaxStringLengthInBytes );
 				}
@@ -247,20 +161,67 @@ namespace MarvinsAIRARefactoredSimHub
 				}
 			}
 
-			public string GetSteeringEffectsSeatOfPantsVibrationPattern()
+			public string GetGraphName()
 			{
-				fixed ( byte* bytePtr = steeringEffectsSeatOfPantsVibrationPattern )
+				fixed ( byte* bytePtr = graphName )
 				{
 					return ReadString( bytePtr, 0, MaxStringLengthInBytes );
 				}
 			}
 
-			public string GetSteeringEffectsSeatOfPantsForceDirection()
+			public string GetGraphNodeName( int nodeIndex )
 			{
-				fixed ( byte* bytePtr = steeringEffectsSeatOfPantsForceDirection )
+				if ( nodeIndex < 0 || nodeIndex >= MaxGraphNodes ) return string.Empty;
+
+				fixed ( byte* bytePtr = graphNodeNames )
 				{
-					return ReadString( bytePtr, 0, MaxStringLengthInBytes );
+					return ReadString( bytePtr, nodeIndex, MaxStringLengthInBytes );
 				}
+			}
+
+			public string GetGraphNodeType( int nodeIndex )
+			{
+				if ( nodeIndex < 0 || nodeIndex >= MaxGraphNodes ) return string.Empty;
+
+				fixed ( byte* bytePtr = graphNodeTypes )
+				{
+					return ReadString( bytePtr, nodeIndex, MaxStringLengthInBytes );
+				}
+			}
+
+			public string GetGraphNodeParameterName( int nodeIndex, int parameterIndex )
+			{
+				if ( !IsValidGraphNodeParameter( nodeIndex, parameterIndex ) ) return string.Empty;
+
+				fixed ( byte* bytePtr = graphNodeParameterNames )
+				{
+					return ReadString( bytePtr, nodeIndex * MaxGraphNodeParameters + parameterIndex, MaxStringLengthInBytes );
+				}
+			}
+
+			public string GetGraphNodeParameterValue( int nodeIndex, int parameterIndex )
+			{
+				if ( !IsValidGraphNodeParameter( nodeIndex, parameterIndex ) ) return string.Empty;
+
+				fixed ( byte* bytePtr = graphNodeParameterValues )
+				{
+					return ReadString( bytePtr, nodeIndex * MaxGraphNodeParameters + parameterIndex, MaxStringLengthInBytes );
+				}
+			}
+
+			public string GetGraphNodeParameterText( int nodeIndex, int parameterIndex )
+			{
+				if ( !IsValidGraphNodeParameter( nodeIndex, parameterIndex ) ) return string.Empty;
+
+				fixed ( byte* bytePtr = graphNodeParameterTexts )
+				{
+					return ReadString( bytePtr, nodeIndex * MaxGraphNodeParameters + parameterIndex, MaxStringLengthInBytes );
+				}
+			}
+
+			private static bool IsValidGraphNodeParameter( int nodeIndex, int parameterIndex )
+			{
+				return ( nodeIndex >= 0 ) && ( nodeIndex < MaxGraphNodes ) && ( parameterIndex >= 0 ) && ( parameterIndex < MaxGraphNodeParameters );
 			}
 
 			public static unsafe string ReadString( byte* bytePtr, int index, int capacity )
@@ -311,6 +272,9 @@ namespace MarvinsAIRARefactoredSimHub
 		public string LeftMenuTitle => "MAIRA Refactored data plugin";
 
 		private PluginSettings Settings { get; set; }
+
+		// managed layout size (1-byte bools) - what MAIRA sizes its mapping with and what MemoryMappedViewAccessor.Read<T> copies
+		private static readonly unsafe int SizeOfData = sizeof( DataStruct );
 
 		private DataStruct data = new DataStruct();
 		private MemoryMappedFile memoryMappedFile = null;
@@ -443,65 +407,18 @@ namespace MarvinsAIRARefactoredSimHub
 				this.AttachDelegate( name: "racingWheelStrength", valueProvider: () => DataBuffer.racingWheelStrength );
 				this.AttachDelegate( name: "racingWheelMaxForce", valueProvider: () => DataBuffer.racingWheelMaxForce );
 
-				this.AttachDelegate( name: "racingWheelAlgorithm", valueProvider: () => DataBuffer.racingWheelAlgorithm );
-				this.AttachDelegate( name: "racingWheelAlgorithmName", valueProvider: () => DataBuffer.GetRacingWheelAlgorithmName() );
-
-				this.AttachDelegate( name: "racingWheelAlgorithmSoftLimiterIsEnabled", valueProvider: () => DataBuffer.racingWheelAlgorithmSoftLimiterIsEnabled );
-				this.AttachDelegate( name: "racingWheelAlgorithmSoftLimiterName", valueProvider: () => DataBuffer.GetRacingWheelAlgorithmSoftLimiterName() );
-				this.AttachDelegate( name: "racingWheelAlgorithmSoftLimiterValue", valueProvider: () => DataBuffer.GetRacingWheelAlgorithmSoftLimiterValue() );
-
-				this.AttachDelegate( name: "racingWheelAlgorithmSetting0", valueProvider: () => DataBuffer.racingWheelAlgorithmSettings[ 0 ] );
-				this.AttachDelegate( name: "racingWheelAlgorithmSetting1", valueProvider: () => DataBuffer.racingWheelAlgorithmSettings[ 1 ] );
-				this.AttachDelegate( name: "racingWheelAlgorithmSetting2", valueProvider: () => DataBuffer.racingWheelAlgorithmSettings[ 2 ] );
-				this.AttachDelegate( name: "racingWheelAlgorithmSetting3", valueProvider: () => DataBuffer.racingWheelAlgorithmSettings[ 3 ] );
-				this.AttachDelegate( name: "racingWheelAlgorithmSetting4", valueProvider: () => DataBuffer.racingWheelAlgorithmSettings[ 4 ] );
-				this.AttachDelegate( name: "racingWheelAlgorithmSetting5", valueProvider: () => DataBuffer.racingWheelAlgorithmSettings[ 5 ] );
-				this.AttachDelegate( name: "racingWheelAlgorithmSetting6", valueProvider: () => DataBuffer.racingWheelAlgorithmSettings[ 6 ] );
-
-				this.AttachDelegate( name: "racingWheelAlgorithmSettingName0", valueProvider: () => DataBuffer.GetRacingWheelAlgorithmSettingName( 0 ) );
-				this.AttachDelegate( name: "racingWheelAlgorithmSettingName1", valueProvider: () => DataBuffer.GetRacingWheelAlgorithmSettingName( 1 ) );
-				this.AttachDelegate( name: "racingWheelAlgorithmSettingName2", valueProvider: () => DataBuffer.GetRacingWheelAlgorithmSettingName( 2 ) );
-				this.AttachDelegate( name: "racingWheelAlgorithmSettingName3", valueProvider: () => DataBuffer.GetRacingWheelAlgorithmSettingName( 3 ) );
-				this.AttachDelegate( name: "racingWheelAlgorithmSettingName4", valueProvider: () => DataBuffer.GetRacingWheelAlgorithmSettingName( 4 ) );
-				this.AttachDelegate( name: "racingWheelAlgorithmSettingName5", valueProvider: () => DataBuffer.GetRacingWheelAlgorithmSettingName( 5 ) );
-				this.AttachDelegate( name: "racingWheelAlgorithmSettingName6", valueProvider: () => DataBuffer.GetRacingWheelAlgorithmSettingName( 6 ) );
-
-				this.AttachDelegate( name: "racingWheelAlgorithmSettingValue0", valueProvider: () => DataBuffer.GetRacingWheelAlgorithmSettingValue( 0 ) );
-				this.AttachDelegate( name: "racingWheelAlgorithmSettingValue1", valueProvider: () => DataBuffer.GetRacingWheelAlgorithmSettingValue( 1 ) );
-				this.AttachDelegate( name: "racingWheelAlgorithmSettingValue2", valueProvider: () => DataBuffer.GetRacingWheelAlgorithmSettingValue( 2 ) );
-				this.AttachDelegate( name: "racingWheelAlgorithmSettingValue3", valueProvider: () => DataBuffer.GetRacingWheelAlgorithmSettingValue( 3 ) );
-				this.AttachDelegate( name: "racingWheelAlgorithmSettingValue4", valueProvider: () => DataBuffer.GetRacingWheelAlgorithmSettingValue( 4 ) );
-				this.AttachDelegate( name: "racingWheelAlgorithmSettingValue5", valueProvider: () => DataBuffer.GetRacingWheelAlgorithmSettingValue( 5 ) );
-				this.AttachDelegate( name: "racingWheelAlgorithmSettingValue6", valueProvider: () => DataBuffer.GetRacingWheelAlgorithmSettingValue( 6 ) );
-
 				// steering effects settings telemetry
 
 				this.AttachDelegate( name: "steeringEffectsCalibrationFileName", valueProvider: () => DataBuffer.GetSteeringEffectsCalibrationFileName() );
 
 				this.AttachDelegate( name: "steeringEffectsUndersteerMinThreshold", valueProvider: () => DataBuffer.steeringEffectsUndersteerMinThreshold );
 				this.AttachDelegate( name: "steeringEffectsUndersteerMaxThreshold", valueProvider: () => DataBuffer.steeringEffectsUndersteerMaxThreshold );
-				this.AttachDelegate( name: "steeringEffectsUndersteerVibrationPattern", valueProvider: () => DataBuffer.GetSteeringEffectsUndersteerVibrationPattern() );
-				this.AttachDelegate( name: "steeringEffectsUndersteerVibrationStrength", valueProvider: () => DataBuffer.steeringEffectsUndersteerVibrationStrength );
-				this.AttachDelegate( name: "steeringEffectsUndersteerVibrationMinFrequency", valueProvider: () => DataBuffer.steeringEffectsUndersteerVibrationMinFrequency );
-				this.AttachDelegate( name: "steeringEffectsUndersteerVibrationMaxFrequency", valueProvider: () => DataBuffer.steeringEffectsUndersteerVibrationMaxFrequency );
-				this.AttachDelegate( name: "steeringEffectsUndersteerVibrationCurve", valueProvider: () => DataBuffer.steeringEffectsUndersteerVibrationCurve );
-				this.AttachDelegate( name: "steeringEffectsUndersteerForceDirection", valueProvider: () => DataBuffer.GetSteeringEffectsUndersteerForceDirection() );
-				this.AttachDelegate( name: "steeringEffectsUndersteerForceStrength", valueProvider: () => DataBuffer.steeringEffectsUndersteerForceStrength );
-				this.AttachDelegate( name: "steeringEffectsUndersteerForceCurve", valueProvider: () => DataBuffer.steeringEffectsUndersteerForceCurve );
 				this.AttachDelegate( name: "steeringEffectsUndersteerPedalVibrationMinFrequency", valueProvider: () => DataBuffer.steeringEffectsUndersteerPedalVibrationMinFrequency );
 				this.AttachDelegate( name: "steeringEffectsUndersteerPedalVibrationMaxFrequency", valueProvider: () => DataBuffer.steeringEffectsUndersteerPedalVibrationMaxFrequency );
 				this.AttachDelegate( name: "steeringEffectsUndersteerPedalVibrationCurve", valueProvider: () => DataBuffer.steeringEffectsUndersteerPedalVibrationCurve );
 
 				this.AttachDelegate( name: "steeringEffectsOversteerMinThreshold", valueProvider: () => DataBuffer.steeringEffectsOversteerMinThreshold );
 				this.AttachDelegate( name: "steeringEffectsOversteerMaxThreshold", valueProvider: () => DataBuffer.steeringEffectsOversteerMaxThreshold );
-				this.AttachDelegate( name: "steeringEffectsOversteerVibrationPattern", valueProvider: () => DataBuffer.GetSteeringEffectsOversteerVibrationPattern() );
-				this.AttachDelegate( name: "steeringEffectsOversteerVibrationStrength", valueProvider: () => DataBuffer.steeringEffectsOversteerVibrationStrength );
-				this.AttachDelegate( name: "steeringEffectsOversteerVibrationMinFrequency", valueProvider: () => DataBuffer.steeringEffectsOversteerVibrationMinFrequency );
-				this.AttachDelegate( name: "steeringEffectsOversteerVibrationMaxFrequency", valueProvider: () => DataBuffer.steeringEffectsOversteerVibrationMaxFrequency );
-				this.AttachDelegate( name: "steeringEffectsOversteerVibrationCurve", valueProvider: () => DataBuffer.steeringEffectsOversteerVibrationCurve );
-				this.AttachDelegate( name: "steeringEffectsOversteerForceDirection", valueProvider: () => DataBuffer.GetSteeringEffectsOversteerForceDirection() );
-				this.AttachDelegate( name: "steeringEffectsOversteerForceStrength", valueProvider: () => DataBuffer.steeringEffectsOversteerForceStrength );
-				this.AttachDelegate( name: "steeringEffectsOversteerForceCurve", valueProvider: () => DataBuffer.steeringEffectsOversteerForceCurve );
 				this.AttachDelegate( name: "steeringEffectsOversteerPedalVibrationMinFrequency", valueProvider: () => DataBuffer.steeringEffectsOversteerPedalVibrationMinFrequency );
 				this.AttachDelegate( name: "steeringEffectsOversteerPedalVibrationMaxFrequency", valueProvider: () => DataBuffer.steeringEffectsOversteerPedalVibrationMaxFrequency );
 				this.AttachDelegate( name: "steeringEffectsOversteerPedalVibrationCurve", valueProvider: () => DataBuffer.steeringEffectsOversteerPedalVibrationCurve );
@@ -509,14 +426,6 @@ namespace MarvinsAIRARefactoredSimHub
 				this.AttachDelegate( name: "steeringEffectsSeatOfPantsMinThreshold", valueProvider: () => DataBuffer.steeringEffectsSeatOfPantsMinThreshold );
 				this.AttachDelegate( name: "steeringEffectsSeatOfPantsMaxThreshold", valueProvider: () => DataBuffer.steeringEffectsSeatOfPantsMaxThreshold );
 				this.AttachDelegate( name: "steeringEffectsSeatOfPantsAlgorithm", valueProvider: () => DataBuffer.GetSteeringEffectsSeatOfPantsAlgorithm() );
-				this.AttachDelegate( name: "steeringEffectsSeatOfPantsVibrationPattern", valueProvider: () => DataBuffer.GetSteeringEffectsSeatOfPantsVibrationPattern() );
-				this.AttachDelegate( name: "steeringEffectsSeatOfPantsVibrationStrength", valueProvider: () => DataBuffer.steeringEffectsSeatOfPantsVibrationStrength );
-				this.AttachDelegate( name: "steeringEffectsSeatOfPantsVibrationMinFrequency", valueProvider: () => DataBuffer.steeringEffectsSeatOfPantsVibrationMinFrequency );
-				this.AttachDelegate( name: "steeringEffectsSeatOfPantsVibrationMaxFrequency", valueProvider: () => DataBuffer.steeringEffectsSeatOfPantsVibrationMaxFrequency );
-				this.AttachDelegate( name: "steeringEffectsSeatOfPantsVibrationCurve", valueProvider: () => DataBuffer.steeringEffectsSeatOfPantsVibrationCurve );
-				this.AttachDelegate( name: "steeringEffectsSeatOfPantsForceDirection", valueProvider: () => DataBuffer.GetSteeringEffectsSeatOfPantsForceDirection() );
-				this.AttachDelegate( name: "steeringEffectsSeatOfPantsForceStrength", valueProvider: () => DataBuffer.steeringEffectsSeatOfPantsForceStrength );
-				this.AttachDelegate( name: "steeringEffectsSeatOfPantsForceCurve", valueProvider: () => DataBuffer.steeringEffectsSeatOfPantsForceCurve );
 				this.AttachDelegate( name: "steeringEffectsSeatOfPantsPedalVibrationMinFrequency", valueProvider: () => DataBuffer.steeringEffectsSeatOfPantsPedalVibrationMinFrequency );
 				this.AttachDelegate( name: "steeringEffectsSeatOfPantsPedalVibrationMaxFrequency", valueProvider: () => DataBuffer.steeringEffectsSeatOfPantsPedalVibrationMaxFrequency );
 				this.AttachDelegate( name: "steeringEffectsSeatOfPantsPedalVibrationCurve", valueProvider: () => DataBuffer.steeringEffectsSeatOfPantsPedalVibrationCurve );
@@ -525,6 +434,35 @@ namespace MarvinsAIRARefactoredSimHub
 				this.AttachDelegate( name: "soundsWheelLockVolume", valueProvider: () => DataBuffer.soundsWheelLockVolume );
 				this.AttachDelegate( name: "soundsWheelSpinIsPlaying", valueProvider: () => DataBuffer.soundsWheelSpinIsPlaying );
 				this.AttachDelegate( name: "soundsWheelSpinVolume", valueProvider: () => DataBuffer.soundsWheelSpinVolume );
+
+				// ffb graph settings telemetry
+
+				this.AttachDelegate( name: "racingWheelGraph.Name", valueProvider: () => DataBuffer.GetGraphName() );
+				this.AttachDelegate( name: "racingWheelGraph.NodeCount", valueProvider: () => DataBuffer.graphNodeCount );
+
+				for ( var nodeIndex = 0; nodeIndex < MaxGraphNodes; nodeIndex++ )
+				{
+					var node = nodeIndex;
+
+					// property names use a 1-based index (racingWheelGraph.Node01 is node 0)
+
+					var nodePropertyName = $"racingWheelGraph.Node{node + 1:00}";
+
+					this.AttachDelegate( name: $"{nodePropertyName}.Name", valueProvider: () => DataBuffer.GetGraphNodeName( node ) );
+					this.AttachDelegate( name: $"{nodePropertyName}.ModuleType",valueProvider: () => DataBuffer.GetGraphNodeType( node ) );
+					this.AttachDelegate( name: $"{nodePropertyName}.ParameterCount", valueProvider: () => DataBuffer.GetGraphNodeParameterCount( node ) );
+
+					for ( var parameterIndex = 0; parameterIndex < MaxGraphNodeParameters; parameterIndex++ )
+					{
+						var parameter = parameterIndex;
+
+						var parameterPropertyName = $"{nodePropertyName}.Parameter{parameter + 1:00}";
+
+						this.AttachDelegate( name: $"{parameterPropertyName}.Name", valueProvider: () => DataBuffer.GetGraphNodeParameterName( node, parameter ) );
+						this.AttachDelegate( name: $"{parameterPropertyName}.ValueRaw", valueProvider: () => DataBuffer.GetGraphNodeParameterValue( node, parameter ) );
+						this.AttachDelegate( name: $"{parameterPropertyName}.ValueFormatted",valueProvider: () => DataBuffer.GetGraphNodeParameterText( node, parameter ) );
+					}
+				}
 
 				// plugin settings
 
@@ -538,6 +476,8 @@ namespace MarvinsAIRARefactoredSimHub
 		public void End( PluginManager pluginManager )
 		{
 			this.SaveCommonSettings("MarvinsAIRARefactoredDataPlugin_Settings.json", Settings);
+
+			ReleaseMemoryMappedFile();
 		}
 
 		public void DataUpdate( PluginManager pluginManager, ref GameData data )
@@ -564,7 +504,24 @@ namespace MarvinsAIRARefactoredSimHub
 					if ( memoryMappedFileViewAccessor == null )
 					{
 						memoryMappedFileViewAccessor = memoryMappedFile.CreateViewAccessor();
-                    }
+
+						// a mapping smaller than our layout was created by a MAIRA with an older layout - report its version and let go of it
+						// (holding it open would also force a newer MAIRA started later to reuse this too-small mapping)
+
+						if ( memoryMappedFileViewAccessor.Capacity < SizeOfData )
+						{
+							MairaPropertiesVersion = memoryMappedFileViewAccessor.ReadInt32( 0 );
+							MairaVersionError = true;
+
+							SimHub.Logging.Current.Info( $"MAIRA Refactored data plugin found a memory mapped file that is too small ({memoryMappedFileViewAccessor.Capacity} < {SizeOfData} bytes) with data version {MairaPropertiesVersion}!" );
+
+							ReleaseMemoryMappedFile();
+
+							nextMemoryMappedFileAttempt = Environment.TickCount + 5000;
+
+							return;
+						}
+					}
 
 					try
 					{
@@ -598,6 +555,12 @@ namespace MarvinsAIRARefactoredSimHub
 						else
 						{
 							MairaPropertiesVersion = 0;
+
+							// MAIRA has stopped writing - let go of the mapping so a restarted MAIRA (possibly with a newer, larger layout) creates a fresh one
+
+							ReleaseMemoryMappedFile();
+
+							nextMemoryMappedFileAttempt = Environment.TickCount + 5000;
 						}
 
                         lastTickCount = DataBuffer.tickCount;
@@ -609,6 +572,15 @@ namespace MarvinsAIRARefactoredSimHub
 			{
                 MairaFaulted = true;
 			}
+		}
+
+		private void ReleaseMemoryMappedFile()
+		{
+			memoryMappedFileViewAccessor?.Dispose();
+			memoryMappedFile?.Dispose();
+
+			memoryMappedFileViewAccessor = null;
+			memoryMappedFile = null;
 		}
 
 		public System.Windows.Controls.Control GetWPFSettingsControl( PluginManager pluginManager )
