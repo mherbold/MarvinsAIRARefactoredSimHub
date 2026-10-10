@@ -20,6 +20,7 @@ namespace MarvinsAIRARefactoredSimHub
 		private const string MemoryMappedFileName = "Local\\MAIRARefactoredTelemetry";
 		private const int MaxStringLengthInBytes = 256;
 		private const int MaxGraphParameters = 50;
+		private const int MaxGraphParameterStringLengthInBytes = 64;
 		private const int ExpectedVersion = 9;
 
 		public int PluginPropertiesVersion => ExpectedVersion;
@@ -126,11 +127,13 @@ namespace MarvinsAIRARefactoredSimHub
 
 			public int graphParameterCount;
 
-			public fixed byte graphParameterNodeNames[ MaxGraphParameters * MaxStringLengthInBytes ];
-			public fixed byte graphParameterNodeModuleTypes[ MaxGraphParameters * MaxStringLengthInBytes ];
-			public fixed byte graphParameterNames[ MaxGraphParameters * MaxStringLengthInBytes ];
-			public fixed byte graphParameterRawValues[ MaxGraphParameters * MaxStringLengthInBytes ];
-			public fixed byte graphParameterFormattedValues[ MaxGraphParameters * MaxStringLengthInBytes ];
+			// the per-parameter strings use a smaller slot than the other strings (must match MAIRA's layout)
+
+			public fixed byte graphParameterNodeNames[ MaxGraphParameters * MaxGraphParameterStringLengthInBytes ];
+			public fixed byte graphParameterNodeModuleTypes[ MaxGraphParameters * MaxGraphParameterStringLengthInBytes ];
+			public fixed byte graphParameterNames[ MaxGraphParameters * MaxGraphParameterStringLengthInBytes ];
+			public fixed byte graphParameterRawValues[ MaxGraphParameters * MaxGraphParameterStringLengthInBytes ];
+			public fixed byte graphParameterFormattedValues[ MaxGraphParameters * MaxGraphParameterStringLengthInBytes ];
 
 			// string getters
 
@@ -164,7 +167,7 @@ namespace MarvinsAIRARefactoredSimHub
 
 				fixed ( byte* bytePtr = graphParameterNodeNames )
 				{
-					return ReadString( bytePtr, parameterIndex, MaxStringLengthInBytes );
+					return ReadString( bytePtr, parameterIndex, MaxGraphParameterStringLengthInBytes );
 				}
 			}
 
@@ -174,7 +177,7 @@ namespace MarvinsAIRARefactoredSimHub
 
 				fixed ( byte* bytePtr = graphParameterNodeModuleTypes )
 				{
-					return ReadString( bytePtr, parameterIndex, MaxStringLengthInBytes );
+					return ReadString( bytePtr, parameterIndex, MaxGraphParameterStringLengthInBytes );
 				}
 			}
 
@@ -184,7 +187,7 @@ namespace MarvinsAIRARefactoredSimHub
 
 				fixed ( byte* bytePtr = graphParameterNames )
 				{
-					return ReadString( bytePtr, parameterIndex, MaxStringLengthInBytes );
+					return ReadString( bytePtr, parameterIndex, MaxGraphParameterStringLengthInBytes );
 				}
 			}
 
@@ -194,7 +197,7 @@ namespace MarvinsAIRARefactoredSimHub
 
 				fixed ( byte* bytePtr = graphParameterRawValues )
 				{
-					return ReadString( bytePtr, parameterIndex, MaxStringLengthInBytes );
+					return ReadString( bytePtr, parameterIndex, MaxGraphParameterStringLengthInBytes );
 				}
 			}
 
@@ -204,7 +207,7 @@ namespace MarvinsAIRARefactoredSimHub
 
 				fixed ( byte* bytePtr = graphParameterFormattedValues )
 				{
-					return ReadString( bytePtr, parameterIndex, MaxStringLengthInBytes );
+					return ReadString( bytePtr, parameterIndex, MaxGraphParameterStringLengthInBytes );
 				}
 			}
 
