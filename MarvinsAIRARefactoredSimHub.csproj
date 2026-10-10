@@ -8,7 +8,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>MarvinsAIRARefactoredSimHub</RootNamespace>
-    <AssemblyName>MarvinsAIRARefactoredSimHub</AssemblyName>
+    <AssemblyName>MairaSimHubPlugin</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
@@ -97,8 +97,18 @@
     </Page>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- MAIRA's app repo, checked out next to this one - the installer ships the plugin from its InnoSetup\SimHub folder -->
   <PropertyGroup>
-    <PostBuildEvent>XCOPY /Y /R "$(TargetDir)\$(TargetName)" "%25SIMHUB_INSTALL_PATH%25"</PostBuildEvent>
-    <PostBuildEvent>XCOPY /Y /R "$(TargetDir)\$(TargetName)*.dll" "C:\Users\marvi\OneDrive\Documents\GitHub\MarvinsAIRARefactored\InnoSetup\SimHub\"</PostBuildEvent>
+    <MairaInstallerSimHubDir>$(MSBuildProjectDirectory)\..\MarvinsAIRARefactored\InnoSetup\SimHub</MairaInstallerSimHubDir>
   </PropertyGroup>
+  <!-- Every build: copy the plugin into the local SimHub install (SIMHUB_INSTALL_PATH environment variable) for testing.
+       Only a warning on failure - SimHub locks the DLL while it is running, and Program Files may need elevation. -->
+  <Target Name="CopyPluginToSimHub" AfterTargets="Build" Condition=" '$(SIMHUB_INSTALL_PATH)' != '' ">
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(SIMHUB_INSTALL_PATH)" Retries="0" ContinueOnError="WarnAndContinue" />
+  </Target>
+  <!-- Release builds only: stage the plugin for MAIRA's installer (skipped when the app repo isn't checked out next to this one) -->
+  <Target Name="CopyPluginToMairaInstaller" AfterTargets="Build" Condition=" '$(Configuration)' == 'Release' And Exists('$(MairaInstallerSimHubDir)') ">
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(MairaInstallerSimHubDir)" />
+    <Message Importance="high" Text="Staged $(TargetFileName) for the MAIRA installer in $(MairaInstallerSimHubDir)" />
+  </Target>
 </Project>
