@@ -19,8 +19,7 @@ namespace MarvinsAIRARefactoredSimHub
 	{
 		private const string MemoryMappedFileName = "Local\\MAIRARefactoredTelemetry";
 		private const int MaxStringLengthInBytes = 256;
-		private const int MaxGraphNodes = 20;
-		private const int MaxGraphNodeParameters = 6;
+		private const int MaxGraphParameters = 50;
 		private const int ExpectedVersion = 9;
 
 		public int PluginPropertiesVersion => ExpectedVersion;
@@ -120,28 +119,18 @@ namespace MarvinsAIRARefactoredSimHub
 			public bool soundsWheelSpinIsPlaying;
 			public float soundsWheelSpinVolume;
 
-			// ffb graph settings telemetry (pinned settings of the active graph, grouped by node)
-			// node n is at index n; parameter p of node n is at index ( n * MaxGraphNodeParameters + p )
+			// ffb graph settings telemetry (pinned settings of the active graph as a flat list, in the display order of
+			// the FFB graph settings section) - parameter i of every array below is at index i
 
 			public fixed byte graphName[ MaxStringLengthInBytes ];
 
-			public int graphNodeCount;
-			public fixed int graphNodeParameterCounts[ MaxGraphNodes ];
+			public int graphParameterCount;
 
-			public fixed byte graphNodeNames[ MaxGraphNodes * MaxStringLengthInBytes ];
-			public fixed byte graphNodeTypes[ MaxGraphNodes * MaxStringLengthInBytes ];
-			public fixed byte graphNodeParameterNames[ MaxGraphNodes * MaxGraphNodeParameters * MaxStringLengthInBytes ];
-			public fixed byte graphNodeParameterValues[ MaxGraphNodes * MaxGraphNodeParameters * MaxStringLengthInBytes ];
-			public fixed byte graphNodeParameterTexts[ MaxGraphNodes * MaxGraphNodeParameters * MaxStringLengthInBytes ];
-
-			// graph node count getters
-
-			public int GetGraphNodeParameterCount( int nodeIndex )
-			{
-				if ( nodeIndex < 0 || nodeIndex >= MaxGraphNodes ) return 0;
-
-				return graphNodeParameterCounts[ nodeIndex ];
-			}
+			public fixed byte graphParameterNodeNames[ MaxGraphParameters * MaxStringLengthInBytes ];
+			public fixed byte graphParameterNodeModuleTypes[ MaxGraphParameters * MaxStringLengthInBytes ];
+			public fixed byte graphParameterNames[ MaxGraphParameters * MaxStringLengthInBytes ];
+			public fixed byte graphParameterRawValues[ MaxGraphParameters * MaxStringLengthInBytes ];
+			public fixed byte graphParameterFormattedValues[ MaxGraphParameters * MaxStringLengthInBytes ];
 
 			// string getters
 
@@ -169,59 +158,54 @@ namespace MarvinsAIRARefactoredSimHub
 				}
 			}
 
-			public string GetGraphNodeName( int nodeIndex )
+			public string GetGraphParameterNodeName( int parameterIndex )
 			{
-				if ( nodeIndex < 0 || nodeIndex >= MaxGraphNodes ) return string.Empty;
+				if ( parameterIndex < 0 || parameterIndex >= MaxGraphParameters ) return string.Empty;
 
-				fixed ( byte* bytePtr = graphNodeNames )
+				fixed ( byte* bytePtr = graphParameterNodeNames )
 				{
-					return ReadString( bytePtr, nodeIndex, MaxStringLengthInBytes );
+					return ReadString( bytePtr, parameterIndex, MaxStringLengthInBytes );
 				}
 			}
 
-			public string GetGraphNodeType( int nodeIndex )
+			public string GetGraphParameterNodeModuleType( int parameterIndex )
 			{
-				if ( nodeIndex < 0 || nodeIndex >= MaxGraphNodes ) return string.Empty;
+				if ( parameterIndex < 0 || parameterIndex >= MaxGraphParameters ) return string.Empty;
 
-				fixed ( byte* bytePtr = graphNodeTypes )
+				fixed ( byte* bytePtr = graphParameterNodeModuleTypes )
 				{
-					return ReadString( bytePtr, nodeIndex, MaxStringLengthInBytes );
+					return ReadString( bytePtr, parameterIndex, MaxStringLengthInBytes );
 				}
 			}
 
-			public string GetGraphNodeParameterName( int nodeIndex, int parameterIndex )
+			public string GetGraphParameterName( int parameterIndex )
 			{
-				if ( !IsValidGraphNodeParameter( nodeIndex, parameterIndex ) ) return string.Empty;
+				if ( parameterIndex < 0 || parameterIndex >= MaxGraphParameters ) return string.Empty;
 
-				fixed ( byte* bytePtr = graphNodeParameterNames )
+				fixed ( byte* bytePtr = graphParameterNames )
 				{
-					return ReadString( bytePtr, nodeIndex * MaxGraphNodeParameters + parameterIndex, MaxStringLengthInBytes );
+					return ReadString( bytePtr, parameterIndex, MaxStringLengthInBytes );
 				}
 			}
 
-			public string GetGraphNodeParameterValue( int nodeIndex, int parameterIndex )
+			public string GetGraphParameterRawValue( int parameterIndex )
 			{
-				if ( !IsValidGraphNodeParameter( nodeIndex, parameterIndex ) ) return string.Empty;
+				if ( parameterIndex < 0 || parameterIndex >= MaxGraphParameters ) return string.Empty;
 
-				fixed ( byte* bytePtr = graphNodeParameterValues )
+				fixed ( byte* bytePtr = graphParameterRawValues )
 				{
-					return ReadString( bytePtr, nodeIndex * MaxGraphNodeParameters + parameterIndex, MaxStringLengthInBytes );
+					return ReadString( bytePtr, parameterIndex, MaxStringLengthInBytes );
 				}
 			}
 
-			public string GetGraphNodeParameterText( int nodeIndex, int parameterIndex )
+			public string GetGraphParameterFormattedValue( int parameterIndex )
 			{
-				if ( !IsValidGraphNodeParameter( nodeIndex, parameterIndex ) ) return string.Empty;
+				if ( parameterIndex < 0 || parameterIndex >= MaxGraphParameters ) return string.Empty;
 
-				fixed ( byte* bytePtr = graphNodeParameterTexts )
+				fixed ( byte* bytePtr = graphParameterFormattedValues )
 				{
-					return ReadString( bytePtr, nodeIndex * MaxGraphNodeParameters + parameterIndex, MaxStringLengthInBytes );
+					return ReadString( bytePtr, parameterIndex, MaxStringLengthInBytes );
 				}
-			}
-
-			private static bool IsValidGraphNodeParameter( int nodeIndex, int parameterIndex )
-			{
-				return ( nodeIndex >= 0 ) && ( nodeIndex < MaxGraphNodes ) && ( parameterIndex >= 0 ) && ( parameterIndex < MaxGraphNodeParameters );
 			}
 
 			public static unsafe string ReadString( byte* bytePtr, int index, int capacity )
@@ -360,6 +344,8 @@ namespace MarvinsAIRARefactoredSimHub
 
 		private int lastTickCount = 0;
 
+		private int attachedGraphParameterCount = 0;
+
 		private ref DataBufferStruct DataBuffer => ref DataStruct.GetDataBuffer( ref data, data.bufferIndex );
 
 		public void Init( PluginManager pluginManager )
@@ -437,32 +423,10 @@ namespace MarvinsAIRARefactoredSimHub
 
 				// ffb graph settings telemetry
 
+				// (the racingWheelGraph.ParameterXX properties are attached on demand in UpdateGraphParameterProperties)
+
 				this.AttachDelegate( name: "racingWheelGraph.Name", valueProvider: () => DataBuffer.GetGraphName() );
-				this.AttachDelegate( name: "racingWheelGraph.NodeCount", valueProvider: () => DataBuffer.graphNodeCount );
-
-				for ( var nodeIndex = 0; nodeIndex < MaxGraphNodes; nodeIndex++ )
-				{
-					var node = nodeIndex;
-
-					// property names use a 1-based index (racingWheelGraph.Node01 is node 0)
-
-					var nodePropertyName = $"racingWheelGraph.Node{node + 1:00}";
-
-					this.AttachDelegate( name: $"{nodePropertyName}.Name", valueProvider: () => DataBuffer.GetGraphNodeName( node ) );
-					this.AttachDelegate( name: $"{nodePropertyName}.ModuleType",valueProvider: () => DataBuffer.GetGraphNodeType( node ) );
-					this.AttachDelegate( name: $"{nodePropertyName}.ParameterCount", valueProvider: () => DataBuffer.GetGraphNodeParameterCount( node ) );
-
-					for ( var parameterIndex = 0; parameterIndex < MaxGraphNodeParameters; parameterIndex++ )
-					{
-						var parameter = parameterIndex;
-
-						var parameterPropertyName = $"{nodePropertyName}.Parameter{parameter + 1:00}";
-
-						this.AttachDelegate( name: $"{parameterPropertyName}.Name", valueProvider: () => DataBuffer.GetGraphNodeParameterName( node, parameter ) );
-						this.AttachDelegate( name: $"{parameterPropertyName}.ValueRaw", valueProvider: () => DataBuffer.GetGraphNodeParameterValue( node, parameter ) );
-						this.AttachDelegate( name: $"{parameterPropertyName}.ValueFormatted",valueProvider: () => DataBuffer.GetGraphNodeParameterText( node, parameter ) );
-					}
-				}
+				this.AttachDelegate( name: "racingWheelGraph.ParameterCount", valueProvider: () => GraphParameterCount );
 
 				// plugin settings
 
@@ -533,6 +497,11 @@ namespace MarvinsAIRARefactoredSimHub
                         MairaReadError = true;
 					}
 
+					if ( !MairaReadError )
+					{
+						UpdateGraphParameterProperties();
+					}
+
 					if ( Environment.TickCount >= nextConnectedCheck )
 					{
 						MairaConnected = DataBuffer.tickCount != lastTickCount;
@@ -571,6 +540,45 @@ namespace MarvinsAIRARefactoredSimHub
 			catch
 			{
                 MairaFaulted = true;
+			}
+		}
+
+		// the number of graph parameters in the current data, clamped to what the layout can hold
+
+		private int GraphParameterCount => Math.Max( 0, Math.Min( DataBuffer.graphParameterCount, MaxGraphParameters ) );
+
+		private void UpdateGraphParameterProperties()
+		{
+			// only trust the count when the data is in our layout - a mismatched layout would read garbage here
+
+			if ( this.data.version != ExpectedVersion )
+			{
+				return;
+			}
+
+			// grow-only: attach properties for any parameters beyond those already attached, but never remove any when
+			// the count drops (parameters past the current count read as blank because MAIRA clears unused slots)
+
+			var parameterCount = GraphParameterCount;
+
+			for ( var parameterIndex = attachedGraphParameterCount; parameterIndex < parameterCount; parameterIndex++ )
+			{
+				var parameter = parameterIndex;
+
+				// property names use a 1-based index (racingWheelGraph.Parameter01 is parameter 0)
+
+				var parameterPropertyName = $"racingWheelGraph.Parameter{parameter + 1:00}";
+
+				this.AttachDelegate( name: $"{parameterPropertyName}.NodeName", valueProvider: () => DataBuffer.GetGraphParameterNodeName( parameter ) );
+				this.AttachDelegate( name: $"{parameterPropertyName}.NodeType", valueProvider: () => DataBuffer.GetGraphParameterNodeModuleType( parameter ) );
+				this.AttachDelegate( name: $"{parameterPropertyName}.Name", valueProvider: () => DataBuffer.GetGraphParameterName( parameter ) );
+				this.AttachDelegate( name: $"{parameterPropertyName}.ValueRaw", valueProvider: () => DataBuffer.GetGraphParameterRawValue( parameter ) );
+				this.AttachDelegate( name: $"{parameterPropertyName}.ValueFormatted", valueProvider: () => DataBuffer.GetGraphParameterFormattedValue( parameter ) );
+			}
+
+			if ( parameterCount > attachedGraphParameterCount )
+			{
+				attachedGraphParameterCount = parameterCount;
 			}
 		}
 
